@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: spa_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: spa_dev
+      POSTGRES_USER: spa
+      POSTGRES_PASSWORD: spa
+    ports:
+      - "5433:5432"
+    volumes:
+      - spa_pgdata:/var/lib/postgresql/data
+
+volumes:
+  spa_pgdata:
+    driver: local

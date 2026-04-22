@@ -1,0 +1,163 @@
+// Prisma schema — K-Beauty Spa CMS
+// Phase 01: User + RefreshToken models for auth
+// Phase 02: DoctorProfile, Service, TimeSlot core entities
+// Phase 03: Booking model with status lifecycle
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  DOCTOR
+  SUPERADMIN
+}
+
+enum SlotStatus {
+  AVAILABLE
+  BOOKED
+  BLOCKED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  EXPIRED
+  CANCELLED
+  NO_SHOW
+}
+
+// Core user entity — supports email+password auth
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  phone        String?  @unique
+  passwordHash String
+  name         String
+  role         Role     @default(CUSTOMER)
+  locale       String   @default("vi")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+  doctorProfile DoctorProfile?
+  bookings      Booking[]
+  articles      Article[]
+}
+
+// Refresh token store — hashed, supports rotation and revocation
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Doctor profile — linked 1:1 to a User with DOCTOR role
+model DoctorProfile {
+  id        String  @id @default(cuid())
+  userId    String  @unique
+  specialty Json    // { vi: string, ko: string }
+  bio       Json    // { vi: string, ko: string }
+  avatarUrl String?
+  yearsExp  Int     @default(0)
+  order     Int     @default(0) // display order
+  active    Boolean @default(true)
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeSlots TimeSlot[]
+  bookings  Booking[]
+}
+
+// Service / treatment package — K-beauty menu item
+model Service {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        Json     // { vi: string, ko: string }
+  description Json     // { vi: string, ko: string }
+  priceVnd    Int
+  durationMin Int      // e.g. 60, 75, 90
+  coverUrl    String?
+  gallery     String[] // array of image URLs
+  featured    Boolean  @default(false)
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings Booking[]
+}
+
+// Time slot for doctor availability — 30-min blocks
+model TimeSlot {
+  id        String     @id @default(cuid())
+  doctorId  String
+  date      DateTime   @db.Date // VN local date only
+  startTime String     // "09:00"
+  endTime   String     // "09:30"
+  status    SlotStatus @default(AVAILABLE)
+  createdAt DateTime   @default(now())
+
+  doctor  DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  booking Booking?
+
+  @@unique([doctorId, date, startTime])
+  @@index([date, status])
+}
+
+// Booking — customer appointment linking user, doctor, service, and time slot
+model Booking {
+  id           String        @id @default(cuid())
+  userId       String
+  doctorId     String
+  serviceId    String
+  slotId       String        @unique // DB-level no double-book
+  status       BookingStatus @default(PENDING)
+  note         String?
+  adminNote    String?
+  startsAt     DateTime
+  endsAt       DateTime
+  cancelledAt  DateTime?
+  cancelReason String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user    User          @relation(fields: [userId], references: [id])
+  doctor  DoctorProfile @relation(fields: [doctorId], references: [id])
+  service Service       @relation(fields: [serviceId], references: [id])
+  slot    TimeSlot      @relation(fields: [slotId], references: [id])
+
+  @@index([userId, status])
+  @@index([doctorId, startsAt])
+}
+
+// Blog article — K-beauty content with bilingual fields (vi/ko)
+model Article {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       Json      // { vi: string, ko: string }
+  excerpt     Json      // { vi: string, ko: string }
+  content     Json      // { vi: TiptapJSON, ko: TiptapJSON }
+  coverUrl    String?
+  tags        String[]
+  authorId    String
+  publishedAt DateTime?
+  featured    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([publishedAt])
+}

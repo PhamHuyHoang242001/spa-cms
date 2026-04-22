@@ -1,0 +1,2 @@
+-- One active booking per user: only one PENDING or CONFIRMED booking allowed at a time
+CREATE UNIQUE INDEX "one_active_booking_per_user" ON "Booking" ("userId") WHERE status IN ('PENDING', 'CONFIRMED');

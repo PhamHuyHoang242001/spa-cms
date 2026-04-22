@@ -1,0 +1,10 @@
+// current-user.decorator.ts — extracts the authenticated user from request
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import type { Request } from 'express';
+
+export const CurrentUser = createParamDecorator(
+  (_data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest<Request>();
+    return (request as Request & { user?: unknown }).user;
+  },
+);
