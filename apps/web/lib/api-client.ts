@@ -4,6 +4,17 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
+// ---------- global auth-failure event ----------
+// Dispatched when a request fails with 401 and token refresh also fails.
+// Auth context listens to this and clears user state → triggers redirect to login.
+export const AUTH_FAILURE_EVENT = 'api:auth-failure';
+
+function dispatchAuthFailure(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(AUTH_FAILURE_EVENT));
+  }
+}
+
 // ---------- in-memory token store ----------
 let accessToken: string | null = null;
 
@@ -77,6 +88,8 @@ async function request<T>(
     if (refreshed) {
       return request<T>(path, options, false);
     }
+    // Refresh also failed — notify auth context to clear user state
+    dispatchAuthFailure();
     throw new Error('Unauthorized');
   }
 
@@ -112,4 +125,34 @@ export function apiPatch<T>(path: string, body: unknown): Promise<T> {
 
 export function apiDelete<T>(path: string): Promise<T> {
   return request<T>(path, { method: 'DELETE' });
+}
+
+export async function apiUpload(file: File): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const headers: Record<string, string> = {};
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const res = await fetch(`${API_BASE}/uploads`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (res.status === 401) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) return apiUpload(file);
+    dispatchAuthFailure();
+    throw new Error('Unauthorized');
+  }
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({})) as { message?: string };
+    throw new Error(errorBody.message ?? `Upload failed: ${res.status}`);
+  }
+
+  return res.json() as Promise<{ url: string }>;
 }

@@ -22,6 +22,10 @@ K-Beauty Spa CMS is a fullstack monorepo for managing a Vietnamese spa booking p
 - **Phase 08:** Polish (performance, SEO, mobile)
 - **Phase 09:** Deployment (staging, production)
 
+### Completed Phases (Additional)
+- **Phase 00 Audit & Debug:** Fixed all backend/frontend bugs (BookingStatus enum, timezone handling, auth refresh, double-submit prevention)
+- **Phase i18n:** Vietnamese-Korean language switching via next-intl v4.11.0, locale routing with prefix strategy, translation files for 150+ UI keys, locale persistence via cookie
+
 ## Tech Stack
 
 ### Backend
@@ -39,6 +43,7 @@ K-Beauty Spa CMS is a fullstack monorepo for managing a Vietnamese spa booking p
 - **Styling:** Tailwind CSS 4
 - **State Management:** React Context (auth context)
 - **API Client:** Fetch-based with auto-refresh
+- **i18n:** next-intl v4.11.0 (Vietnamese/Korean, locale routing, cookie persistence)
 
 ### Shared
 - **Shared Package:** `packages/shared` (Zod schemas, types, DTOs)
@@ -182,14 +187,16 @@ spa-cms/
 |-------|--------|-------|---------|------------|
 | 00-Setup | ✓ Complete | Fullstack | — | 100% |
 | 01-Auth | ✓ Complete | Fullstack | 00 | 100% |
-| 02-Core Entities | Planned | Fullstack | 01 | 0% |
-| 03-Booking Logic | Planned | Fullstack | 02 | 0% |
-| 04-Landing | Planned | Frontend | 02 | 0% |
-| 05-Blog | Planned | Fullstack | 02 | 0% |
-| 06-Dashboard | Planned | Frontend | 03 | 0% |
-| 07-Admin | Planned | Fullstack | 03 | 0% |
-| 08-Polish | Planned | Fullstack | 07 | 0% |
-| 09-Deploy | Planned | DevOps | 08 | 0% |
+| 02-Core Entities | ✓ Complete | Fullstack | 01 | 100% |
+| 03-Booking Logic | ✓ Complete | Fullstack | 02 | 100% |
+| 04-Landing | ✓ Complete | Frontend | 02 | 100% |
+| 05-Blog | ✓ Complete | Fullstack | 02 | 100% |
+| 06-Dashboard | ✓ Complete | Frontend | 03 | 100% |
+| 07-Admin | ✓ Complete | Fullstack | 03 | 100% |
+| 08-Polish | ✓ Complete | Fullstack | 07 | 100% |
+| 09-Deploy | ✓ Complete | DevOps | 08 | 100% |
+| i18n | ✓ Complete | Frontend | 02 | 100% |
+| Debug & Audit | ✓ Complete | Fullstack | 01-09 | 100% |
 
 ## Related Documentation
 

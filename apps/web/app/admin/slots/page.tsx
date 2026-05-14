@@ -24,12 +24,15 @@ export default function SlotsPage() {
 
   // Load doctor list on mount
   useEffect(() => {
-    apiGet<DoctorOption[]>('/doctors')
-      .then((data) => {
-        setDoctors(data);
-        if (data.length > 0) setSelectedDoctor(data[0].id);
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : 'Lỗi tải bác sĩ'));
+    void Promise.resolve().then(() => {
+      apiGet<Array<{ id: string; user: { name: string } }>>('/doctors')
+        .then((data) => {
+          const mapped = data.map((d) => ({ id: d.id, name: d.user.name }));
+          setDoctors(mapped);
+          if (mapped.length > 0) setSelectedDoctor(mapped[0].id);
+        })
+        .catch((e) => setError(e instanceof Error ? e.message : 'Lỗi tải bác sĩ'));
+    });
   }, []);
 
   const loadSlots = useCallback(async () => {
@@ -46,7 +49,9 @@ export default function SlotsPage() {
     }
   }, [selectedDoctor, selectedDate]);
 
-  useEffect(() => { loadSlots(); }, [loadSlots]);
+  useEffect(() => {
+    void Promise.resolve().then(loadSlots);
+  }, [loadSlots]);
 
   async function generateAll() {
     setGenerating(true);

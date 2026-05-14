@@ -11,9 +11,16 @@ interface AdminFormModalProps {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  maxWidthClassName?: string;
 }
 
-export function AdminFormModal({ title, open, onClose, children }: AdminFormModalProps) {
+export function AdminFormModal({
+  title,
+  open,
+  onClose,
+  children,
+  maxWidthClassName = 'max-w-lg',
+}: AdminFormModalProps) {
   // Close on Escape
   useEffect(() => {
     if (!open) return;
@@ -35,7 +42,7 @@ export function AdminFormModal({ title, open, onClose, children }: AdminFormModa
       />
 
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl">
+      <div className={`relative z-10 w-full ${maxWidthClassName} max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#ede4de]">
           <h2 className="text-base font-semibold text-[#3d2b25]">{title}</h2>

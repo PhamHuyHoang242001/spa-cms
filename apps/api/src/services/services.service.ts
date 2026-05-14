@@ -4,8 +4,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { createServiceSchema, updateServiceSchema } from '@spa/shared';
+import {
+  buildPaginatedResult,
+  parsePagination,
+} from '../common/utils/pagination-utils';
 
 @Injectable()
 export class ServicesService {
@@ -18,6 +23,40 @@ export class ServicesService {
       where: { active: true },
       orderBy: { order: 'asc' },
     });
+  }
+
+  // ── Admin list all services with backward-compatible pagination ─────────────
+
+  async listAll(page?: string, limit?: string, search?: string) {
+    const pagination = parsePagination(page, limit);
+    const q = search?.trim();
+    const where: Prisma.ServiceWhereInput = q
+      ? {
+          OR: [
+            { slug: { contains: q, mode: 'insensitive' } },
+            { name: { path: ['vi'], string_contains: q } },
+            { name: { path: ['ko'], string_contains: q } },
+            { description: { path: ['vi'], string_contains: q } },
+            { description: { path: ['ko'], string_contains: q } },
+          ],
+        }
+      : {};
+
+    if (!pagination) {
+      return this.prisma.service.findMany({ where, orderBy: { order: 'asc' } });
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.service.findMany({
+        where,
+        orderBy: { order: 'asc' },
+        skip: pagination.skip,
+        take: pagination.take,
+      }),
+      this.prisma.service.count({ where }),
+    ]);
+
+    return buildPaginatedResult(data, total, pagination.page, pagination.limit);
   }
 
   // ── Get service by slug (public-facing URL key) ──────────────────────────────
@@ -72,6 +111,9 @@ export class ServicesService {
     const service = await this.prisma.service.findUnique({ where: { id } });
     if (!service) throw new NotFoundException(`Service ${id} not found`);
 
-    return this.prisma.service.update({ where: { id }, data: { active: false } });
+    return this.prisma.service.update({
+      where: { id },
+      data: { active: false },
+    });
   }
 }

@@ -4,9 +4,12 @@
 // Fetches services from API and renders selectable cards
 
 import { useEffect, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Clock, CheckCircle2 } from 'lucide-react';
 import { apiGet } from '@/lib/api-client';
 import type { Service } from '@/lib/api-types';
+import { localizedText } from '@/lib/locale-content';
+import { resolveMediaUrl } from '@/lib/media-url';
 
 const CARD_GRADIENTS = [
   'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -24,6 +27,9 @@ interface StepServiceProps {
 }
 
 export function StepService({ selectedId, prefillSlug, onSelect }: StepServiceProps) {
+  const t = useTranslations('booking');
+  const locale = useLocale();
+
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -38,7 +44,7 @@ export function StepService({ selectedId, prefillSlug, onSelect }: StepServicePr
           if (match) onSelect(match);
         }
       })
-      .catch(() => setError('Không thể tải danh sách dịch vụ.'))
+      .catch(() => setError(t('errorDefault')))
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillSlug]);
@@ -79,9 +85,17 @@ export function StepService({ selectedId, prefillSlug, onSelect }: StepServicePr
             }`}
           >
             <div
-              className="h-32 w-full relative"
-              style={{ background: CARD_GRADIENTS[i % CARD_GRADIENTS.length] }}
+              className="h-32 w-full relative overflow-hidden"
+              style={service.coverUrl ? undefined : { background: CARD_GRADIENTS[i % CARD_GRADIENTS.length] }}
             >
+              {service.coverUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={resolveMediaUrl(service.coverUrl)}
+                  alt={localizedText(service.name, locale)}
+                  className="h-full w-full object-cover"
+                />
+              )}
               {isSelected && (
                 <div className="absolute top-2 right-2 bg-white rounded-full p-0.5">
                   <CheckCircle2 size={18} className="text-[#D4A574]" />
@@ -90,18 +104,18 @@ export function StepService({ selectedId, prefillSlug, onSelect }: StepServicePr
             </div>
             <div className="p-4">
               <h3 className="font-semibold text-[#1C1917] text-sm mb-1 line-clamp-1">
-                {service.name.vi}
+                {localizedText(service.name, locale)}
               </h3>
               <p className="text-[#A8A29E] text-xs line-clamp-2 mb-3">
-                {service.description?.vi ?? ''}
+                {localizedText(service.description, locale)}
               </p>
               <div className="flex items-center justify-between">
                 <span className="text-[#D4A574] font-bold text-xs">
-                  {service.price.toLocaleString('vi-VN')}đ
+                  {service.priceVnd.toLocaleString('vi-VN')}đ
                 </span>
                 <span className="flex items-center gap-1 text-xs text-[#A8A29E]">
                   <Clock size={10} />
-                  {service.duration} phút
+                  {service.durationMin} min
                 </span>
               </div>
             </div>

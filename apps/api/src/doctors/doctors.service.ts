@@ -4,10 +4,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { createDoctorSchema, updateDoctorSchema, BCRYPT_ROUNDS } from '@spa/shared';
-import type { CreateDoctorInput, UpdateDoctorInput } from '@spa/shared';
+import {
+  createDoctorSchema,
+  updateDoctorSchema,
+  BCRYPT_ROUNDS,
+} from '@spa/shared';
+import {
+  buildPaginatedResult,
+  parsePagination,
+} from '../common/utils/pagination-utils';
 
 @Injectable()
 export class DoctorsService {
@@ -21,6 +29,47 @@ export class DoctorsService {
       orderBy: { order: 'asc' },
       include: { user: { select: { id: true, name: true, email: true } } },
     });
+  }
+
+  // ── Admin list all doctors with backward-compatible pagination ──────────────
+
+  async listAll(page?: string, limit?: string, search?: string) {
+    const pagination = parsePagination(page, limit);
+    const q = search?.trim();
+    const where: Prisma.DoctorProfileWhereInput = q
+      ? {
+          OR: [
+            { user: { name: { contains: q, mode: 'insensitive' } } },
+            { user: { email: { contains: q, mode: 'insensitive' } } },
+            { specialty: { path: ['vi'], string_contains: q } },
+            { specialty: { path: ['ko'], string_contains: q } },
+            { bio: { path: ['vi'], string_contains: q } },
+            { bio: { path: ['ko'], string_contains: q } },
+          ],
+        }
+      : {};
+    const include = { user: { select: { id: true, name: true, email: true } } };
+
+    if (!pagination) {
+      return this.prisma.doctorProfile.findMany({
+        where,
+        orderBy: { order: 'asc' },
+        include,
+      });
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.doctorProfile.findMany({
+        where,
+        orderBy: { order: 'asc' },
+        include,
+        skip: pagination.skip,
+        take: pagination.take,
+      }),
+      this.prisma.doctorProfile.count({ where }),
+    ]);
+
+    return buildPaginatedResult(data, total, pagination.page, pagination.limit);
   }
 
   // ── Get single doctor by profile id ─────────────────────────────────────────
@@ -42,8 +91,17 @@ export class DoctorsService {
       throw new BadRequestException(parsed.error.flatten().fieldErrors);
     }
 
-    const { email, password, name, phone, specialty, bio, avatarUrl, yearsExp, order } =
-      parsed.data as CreateDoctorInput;
+    const {
+      email,
+      password,
+      name,
+      phone,
+      specialty,
+      bio,
+      avatarUrl,
+      yearsExp,
+      order,
+    } = parsed.data;
 
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) throw new BadRequestException('Email already in use');
@@ -69,7 +127,12 @@ export class DoctorsService {
         return profile;
       });
     } catch (err: unknown) {
-      if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
+      if (
+        err &&
+        typeof err === 'object' &&
+        'code' in err &&
+        err.code === 'P2002'
+      ) {
         throw new BadRequestException('Email or phone already in use');
       }
       throw err;
@@ -85,9 +148,11 @@ export class DoctorsService {
     }
 
     const { name, phone, specialty, bio, avatarUrl, yearsExp, order, active } =
-      parsed.data as UpdateDoctorInput;
+      parsed.data;
 
-    const doctor = await this.prisma.doctorProfile.findUnique({ where: { id } });
+    const doctor = await this.prisma.doctorProfile.findUnique({
+      where: { id },
+    });
     if (!doctor) throw new NotFoundException(`Doctor ${id} not found`);
 
     return this.prisma.$transaction(async (tx) => {
@@ -95,7 +160,10 @@ export class DoctorsService {
       if (name !== undefined || phone !== undefined) {
         await tx.user.update({
           where: { id: doctor.userId },
-          data: { ...(name !== undefined && { name }), ...(phone !== undefined && { phone }) },
+          data: {
+            ...(name !== undefined && { name }),
+            ...(phone !== undefined && { phone }),
+          },
         });
       }
       // Update profile fields
@@ -117,7 +185,9 @@ export class DoctorsService {
   // ── Soft delete (set active=false) ───────────────────────────────────────────
 
   async softDelete(id: string) {
-    const doctor = await this.prisma.doctorProfile.findUnique({ where: { id } });
+    const doctor = await this.prisma.doctorProfile.findUnique({
+      where: { id },
+    });
     if (!doctor) throw new NotFoundException(`Doctor ${id} not found`);
 
     return this.prisma.doctorProfile.update({

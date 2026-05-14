@@ -6,12 +6,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiGet } from '@/lib/api-client';
-import { Stethoscope, BookOpen, Newspaper, Plus } from 'lucide-react';
+import { Stethoscope, BookOpen, Newspaper, Plus, CalendarCheck } from 'lucide-react';
+import type { BookingAdmin, BookingStatus, PaginatedResponse } from '@/lib/api-types';
 
 interface StatsState {
   services: number;
   doctors: number;
   articles: number;
+  bookings: number;
 }
 
 interface StatCardProps {
@@ -34,23 +36,27 @@ function StatCard({ label, value, icon, color }: StatCardProps) {
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<StatsState>({ services: 0, doctors: 0, articles: 0 });
+  const [stats, setStats] = useState<StatsState>({ services: 0, doctors: 0, articles: 0, bookings: 0 });
+  const [recentBookings, setRecentBookings] = useState<BookingAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function load() {
       try {
-        const [services, doctors, articles] = await Promise.all([
+        const [services, doctors, articles, bookings] = await Promise.all([
           apiGet<unknown[]>('/services'),
           apiGet<unknown[]>('/doctors'),
-          apiGet<unknown[]>('/articles'),
+          apiGet<PaginatedResponse<unknown>>('/articles/admin?page=1&limit=1'),
+          apiGet<PaginatedResponse<BookingAdmin>>('/bookings?page=1&limit=5'),
         ]);
         setStats({
           services: services.length,
           doctors: doctors.length,
-          articles: articles.length,
+          articles: articles.meta.total,
+          bookings: bookings.meta.total,
         });
+        setRecentBookings(bookings.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Lỗi tải dữ liệu');
       } finally {
@@ -61,7 +67,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-[#3d2b25]">Tổng quan</h1>
         <p className="text-sm text-[#8a6a62] mt-1">Xem nhanh dữ liệu hệ thống</p>
@@ -74,7 +80,7 @@ export default function DashboardPage() {
       )}
 
       {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Dịch vụ"
           value={loading ? 0 : stats.services}
@@ -92,6 +98,12 @@ export default function DashboardPage() {
           value={loading ? 0 : stats.articles}
           icon={<Newspaper size={22} className="text-[#5aaa7e]" />}
           color="bg-[#eefdf4]"
+        />
+        <StatCard
+          label="Đặt lịch"
+          value={loading ? 0 : stats.bookings}
+          icon={<CalendarCheck size={22} className="text-[#c97d3e]" />}
+          color="bg-[#fdf4e8]"
         />
       </div>
 
@@ -123,13 +135,53 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent bookings placeholder */}
       <div>
-        <h2 className="text-base font-semibold text-[#3d2b25] mb-3">Đặt lịch gần đây</h2>
-        <div className="bg-white rounded-2xl border border-[#ede4de] px-6 py-10 text-center text-[#a89080] text-sm">
-          Tính năng danh sách đặt lịch toàn bộ sẽ có ở phiên bản sau.
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-[#3d2b25]">Đặt lịch gần đây</h2>
+          <Link href="/admin/bookings" className="text-sm font-medium text-[#B76E79] hover:underline">
+            Xem tất cả
+          </Link>
         </div>
+        {recentBookings.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-[#ede4de] px-6 py-10 text-center text-[#a89080] text-sm">
+            Chưa có đặt lịch.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {recentBookings.map((booking) => (
+              <div key={booking.id} className="flex items-center justify-between gap-4 rounded-xl border border-[#ede4de] bg-white p-4">
+                <div>
+                  <p className="text-sm font-medium text-[#3d2b25]">{booking.user.name}</p>
+                  <p className="text-xs text-[#8a6a62]">
+                    {booking.service.name.vi} - {new Date(booking.slot.date).toLocaleDateString('vi-VN')} {booking.slot.startTime}
+                  </p>
+                </div>
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[booking.status]}`}>
+                  {STATUS_LABELS[booking.status]}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+const STATUS_LABELS: Record<BookingStatus, string> = {
+  PENDING: 'Chờ xác nhận',
+  CONFIRMED: 'Đã xác nhận',
+  COMPLETED: 'Hoàn thành',
+  EXPIRED: 'Hết hạn',
+  CANCELLED: 'Đã hủy',
+  NO_SHOW: 'Vắng mặt',
+};
+
+const STATUS_COLORS: Record<BookingStatus, string> = {
+  PENDING: 'bg-amber-100 text-amber-700',
+  CONFIRMED: 'bg-blue-100 text-blue-700',
+  COMPLETED: 'bg-green-100 text-green-700',
+  EXPIRED: 'bg-gray-100 text-gray-500',
+  CANCELLED: 'bg-red-100 text-red-600',
+  NO_SHOW: 'bg-orange-100 text-orange-700',
+};

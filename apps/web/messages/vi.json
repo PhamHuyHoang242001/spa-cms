@@ -1,0 +1,204 @@
+{
+  "nav": {
+    "home": "Trang chủ",
+    "services": "Dịch vụ",
+    "doctors": "Bác sĩ",
+    "booking": "Đặt lịch",
+    "blog": "Bài viết",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "logout": "Đăng xuất",
+    "myBookings": "Lịch hẹn",
+    "greeting": "Xin chào, {name}",
+    "skipToContent": "Chuyển đến nội dung chính"
+  },
+  "hero": {
+    "title": "Trải Nghiệm Làn Da Chuẩn Hàn",
+    "subtitle": "Liệu pháp chăm sóc da cao cấp kết hợp công nghệ K-Beauty tiên tiến nhất",
+    "subline": "Cá nhân hóa bằng phân tích da, bác sĩ chuyên khoa và liệu trình phục hồi chuẩn Seoul",
+    "cta": "Đặt lịch ngay",
+    "stat1Value": "96%",
+    "stat1Label": "skin match",
+    "stat2Value": "5 bước",
+    "stat2Label": "treatment flow",
+    "stat3Value": "24h",
+    "stat3Label": "booking ready",
+    "liveTitle": "Live Beauty Slot",
+    "liveBody": "Tư vấn da, chọn bác sĩ, giữ lịch trong một luồng."
+  },
+  "services": {
+    "sectionTitle": "Dịch Vụ Nổi Bật",
+    "pageTitle": "Dịch Vụ",
+    "pageDescription": "Khám phá các liệu trình chăm sóc da chuẩn Hàn tại K-Beauty Spa",
+    "duration": "{min} phút",
+    "price": "{amount}đ",
+    "bookNow": "Đặt lịch",
+    "viewAll": "Xem tất cả dịch vụ",
+    "featured": "Nổi bật",
+    "homeHeading": "Liệu trình signature với hiệu ứng thị giác khác biệt."
+  },
+  "doctors": {
+    "sectionTitle": "Đội Ngũ Bác Sĩ",
+    "pageTitle": "Bác Sĩ",
+    "pageDescription": "Đội ngũ bác sĩ giàu kinh nghiệm tại K-Beauty Spa",
+    "yearsExp": "{years} năm kinh nghiệm",
+    "viewProfile": "Xem hồ sơ",
+    "allDoctors": "Tất cả bác sĩ",
+    "teamLabel": "Đội Ngũ",
+    "heroTitle": "Các Bác Sĩ Chuyên Gia",
+    "heroDescription": "Đội ngũ bác sĩ giàu kinh nghiệm, được đào tạo chuyên sâu về thẩm mỹ và chăm sóc da theo tiêu chuẩn Hàn Quốc.",
+    "emptyState": "Đang cập nhật đội ngũ bác sĩ. Vui lòng quay lại sau.",
+    "about": "Giới Thiệu",
+    "specialties": "Chuyên Môn",
+    "bookWithDoctor": "Đặt lịch với bác sĩ này",
+    "notFound": "Không tìm thấy bác sĩ",
+    "noInfo": "Đang cập nhật thông tin bác sĩ.",
+    "loadError": "Không thể tải danh sách bác sĩ.",
+    "morning": "Buổi sáng",
+    "afternoon": "Buổi chiều"
+  },
+  "process": {
+    "title": "Quy Trình Đặt Lịch",
+    "step1": "Chọn dịch vụ",
+    "step1Desc": "Tìm liệu trình phù hợp với nhu cầu làn da của bạn",
+    "step2": "Chọn bác sĩ",
+    "step2Desc": "Lựa chọn bác sĩ chuyên khoa phù hợp",
+    "step3": "Chọn thời gian",
+    "step3Desc": "Đặt lịch vào khung giờ thuận tiện nhất",
+    "step4": "Xác nhận",
+    "step4Desc": "Xác nhận thông tin và hoàn tất đặt lịch",
+    "step5": "Trải nghiệm",
+    "step5Desc": "Đến spa và tận hưởng dịch vụ",
+    "homeHeading": "Một quy trình điều trị mượt như chuỗi khởi động."
+  },
+  "cta": {
+    "title": "Sẵn sàng cho làn da hoàn hảo?",
+    "subtitle": "Đặt lịch ngay hôm nay để trải nghiệm dịch vụ chăm sóc da chuẩn Hàn tốt nhất.",
+    "button": "Đặt lịch ngay"
+  },
+  "booking": {
+    "title": "Đặt Lịch Hẹn",
+    "stepService": "Chọn dịch vụ",
+    "stepDoctor": "Chọn bác sĩ",
+    "stepSlot": "Chọn thời gian",
+    "stepConfirm": "Xác nhận",
+    "selectService": "Chọn dịch vụ bạn muốn",
+    "selectDoctor": "Chọn bác sĩ",
+    "selectSlot": "Chọn ngày và giờ",
+    "summary": "Thông tin đặt lịch",
+    "serviceLabel": "Dịch vụ",
+    "doctorLabel": "Bác sĩ",
+    "dateLabel": "Ngày",
+    "timeLabel": "Giờ",
+    "noteLabel": "Ghi chú (tuỳ chọn)",
+    "notePlaceholder": "Tình trạng da, yêu cầu đặc biệt…",
+    "confirm": "Xác nhận đặt lịch",
+    "confirming": "Đang đặt lịch…",
+    "activeWarning": "Bạn đang có lịch hẹn đang chờ xử lý. Đặt thêm lịch mới vẫn được cho phép.",
+    "errorDefault": "Đặt lịch thất bại. Vui lòng thử lại.",
+    "successTitle": "Đặt lịch thành công!",
+    "successMessage": "Lịch hẹn của bạn đã được tạo. Chúng tôi sẽ xác nhận sớm nhất.",
+    "backHome": "Về trang chủ",
+    "viewBookings": "Xem lịch hẹn",
+    "noSlots": "Không có khung giờ trống trong ngày này",
+    "back": "Quay lại",
+    "next": "Tiếp theo"
+  },
+  "myBookings": {
+    "account": "Tài khoản",
+    "title": "Lịch Hẹn Của Tôi",
+    "tabActive": "Lịch hẹn",
+    "tabHistory": "Lịch sử",
+    "emptyActive": "Bạn chưa có lịch hẹn nào.",
+    "emptyHistory": "Chưa có lịch sử đặt lịch.",
+    "bookNow": "Đặt lịch ngay",
+    "cancel": "Huỷ lịch hẹn",
+    "cancelTitle": "Huỷ lịch hẹn?",
+    "cancelMessage": "Bạn có chắc muốn huỷ lịch hẹn này không? Hành động không thể hoàn tác.",
+    "cancelReasonLabel": "Lý do huỷ (tuỳ chọn)",
+    "cancelReasonPlaceholder": "Vd: Bận đột xuất…",
+    "cancelConfirm": "Huỷ lịch",
+    "cancelling": "Đang huỷ…",
+    "cancelNo": "Không",
+    "cancelError": "Huỷ lịch thất bại.",
+    "notePrefix": "Ghi chú",
+    "cancelReasonPrefix": "Lý do huỷ",
+    "status": {
+      "PENDING": "Chờ xác nhận",
+      "CONFIRMED": "Đã xác nhận",
+      "COMPLETED": "Hoàn thành",
+      "EXPIRED": "Hết hạn",
+      "CANCELLED": "Đã huỷ",
+      "NO_SHOW": "Không đến"
+    }
+  },
+  "auth": {
+    "loginTitle": "Đăng Nhập",
+    "registerTitle": "Đăng Ký",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "name": "Họ tên",
+    "phone": "Số điện thoại (tuỳ chọn)",
+    "loginButton": "Đăng nhập",
+    "registerButton": "Đăng ký",
+    "noAccount": "Chưa có tài khoản?",
+    "hasAccount": "Đã có tài khoản?",
+    "registerLink": "Đăng ký ngay",
+    "loginLink": "Đăng nhập"
+  },
+  "footer": {
+    "description": "Trải nghiệm làm đẹp chuẩn Hàn — kết hợp công nghệ hiện đại và liệu pháp truyền thống.",
+    "contact": "Liên hệ",
+    "address": "123 Đường Lê Lợi, Quận 1, TP. Hồ Chí Minh",
+    "phone": "0901 234 567",
+    "hours": "Thứ 2 – Chủ nhật: 9:00 – 18:00",
+    "follow": "Theo dõi",
+    "copyright": "© {year} K-Beauty Spa. Bảo lưu mọi quyền."
+  },
+  "common": {
+    "loading": "Đang tải...",
+    "authenticating": "Đang xác thực…",
+    "error": "Đã xảy ra lỗi",
+    "retry": "Thử lại",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "submit": "Gửi",
+    "cancel": "Huỷ",
+    "save": "Lưu",
+    "readMore": "Đọc thêm"
+  },
+  "blog": {
+    "pageTitle": "Bài Viết",
+    "pageDescription": "Kiến thức chăm sóc da và làm đẹp chuẩn Hàn Quốc",
+    "readMore": "Đọc thêm",
+    "tags": "Chủ đề",
+    "allPosts": "Tất cả",
+    "publishedAt": "Đăng ngày"
+  },
+  "metadata": {
+    "home": {
+      "title": "K-Beauty Spa — Trải Nghiệm Làn Da Chuẩn Hàn",
+      "description": "K-Beauty Spa — Dịch vụ chăm sóc da và làm đẹp chuẩn Hàn Quốc tại TP. Hồ Chí Minh. Đặt lịch online dễ dàng."
+    },
+    "services": {
+      "title": "Dịch Vụ — K-Beauty Spa",
+      "description": "Khám phá các liệu trình chăm sóc da chuẩn Hàn tại K-Beauty Spa"
+    },
+    "doctors": {
+      "title": "Bác Sĩ — K-Beauty Spa",
+      "description": "Đội ngũ bác sĩ giàu kinh nghiệm tại K-Beauty Spa"
+    },
+    "booking": {
+      "title": "Đặt Lịch — K-Beauty Spa",
+      "description": "Đặt lịch hẹn chăm sóc da chuẩn Hàn tại K-Beauty Spa"
+    },
+    "blog": {
+      "title": "Bài Viết — K-Beauty Spa",
+      "description": "Kiến thức chăm sóc da và làm đẹp chuẩn Hàn Quốc"
+    },
+    "myBookings": {
+      "title": "Lịch Hẹn Của Tôi — K-Beauty Spa",
+      "description": "Quản lý lịch hẹn chăm sóc da tại K-Beauty Spa"
+    }
+  }
+}

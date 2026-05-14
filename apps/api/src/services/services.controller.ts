@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ServicesService } from './services.service';
@@ -22,6 +23,18 @@ export class ServicesController {
   @Get()
   listActive() {
     return this.servicesService.listActive();
+  }
+
+  // Admin — list all services with optional search + pagination
+  @Get('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPERADMIN')
+  listAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.servicesService.listAll(page, limit, search);
   }
 
   // Public — service detail by slug

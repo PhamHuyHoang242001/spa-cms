@@ -1,27 +1,32 @@
 'use client';
 
 // admin/layout.tsx — Auth guard + role check for all /admin/* routes
-// Redirects unauthenticated users to /login, CUSTOMER role to /
+// Redirects unauthenticated users to /admin/login, CUSTOMER role to /
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
+    if (isLoginPage) return;
     if (isLoading) return;
     if (!user) {
-      router.replace('/login');
+      router.replace('/admin/login');
       return;
     }
     if (user.role === 'CUSTOMER') {
       router.replace('/');
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, isLoginPage]);
+
+  if (isLoginPage) return <>{children}</>;
 
   if (isLoading) {
     return (

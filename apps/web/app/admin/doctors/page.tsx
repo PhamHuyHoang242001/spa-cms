@@ -3,12 +3,29 @@
 // admin/doctors/page.tsx — Doctors CRUD for SUPERADMIN
 // Table with add/edit modal and soft-delete toggle
 
-import { useEffect, useState, useCallback } from 'react';
-import { apiGet, apiPost, apiPatch } from '@/lib/api-client';
+import { useMemo, useState } from 'react';
+import { apiPost, apiPatch } from '@/lib/api-client';
 import { AdminTable } from '@/components/admin/admin-table';
 import { AdminFormModal } from '@/components/admin/admin-form-modal';
+import { AdminImageUpload } from '@/components/admin/admin-image-upload';
+import { AdminSearchBar } from '@/components/admin/admin-search-bar';
+import { AdminPagination } from '@/components/admin/admin-pagination';
+import { useAdminList } from '@/hooks/use-admin-list';
 import { Pencil, Plus, ToggleLeft, ToggleRight } from 'lucide-react';
 
+// API returns DoctorProfile with nested user
+interface DoctorApiRow {
+  id: string;
+  user: { id: string; name: string; email: string };
+  specialty: { vi: string; ko: string };
+  bio: { vi: string; ko: string };
+  yearsExp: number;
+  avatarUrl?: string | null;
+  order?: number;
+  active: boolean;
+}
+
+// Flattened for table display
 interface DoctorRow {
   id: string;
   email: string;
@@ -17,6 +34,8 @@ interface DoctorRow {
   specialty: { vi: string; ko: string };
   bio: { vi: string; ko: string };
   yearsExp: number;
+  avatarUrl?: string | null;
+  order?: number;
   active: boolean;
 }
 
@@ -30,33 +49,44 @@ const EMPTY_FORM = {
   bioVi: '',
   bioKo: '',
   yearsExp: '',
+  avatarUrl: '',
+  order: '0',
 };
 
 type FormState = typeof EMPTY_FORM;
 
 export default function DoctorsPage() {
-  const [rows, setRows] = useState<DoctorRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await apiGet<DoctorRow[]>('/doctors');
-      setRows(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Lỗi tải bác sĩ');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const {
+    data,
+    meta,
+    loading,
+    error: listError,
+    search,
+    setSearch,
+    page,
+    setPage,
+    reload,
+  } = useAdminList<DoctorApiRow>({ url: '/doctors/admin' });
+  const rows = useMemo<DoctorRow[]>(
+    () =>
+      data.map((d) => ({
+        id: d.id,
+        email: d.user.email,
+        name: d.user.name,
+        specialty: d.specialty,
+        bio: d.bio,
+        yearsExp: d.yearsExp,
+        avatarUrl: d.avatarUrl ?? null,
+        order: d.order ?? 0,
+        active: d.active,
+      })),
+    [data],
+  );
 
   function openCreate() {
     setEditId(null);
@@ -76,6 +106,8 @@ export default function DoctorsPage() {
       bioVi: row.bio.vi,
       bioKo: row.bio.ko,
       yearsExp: String(row.yearsExp),
+      avatarUrl: row.avatarUrl ?? '',
+      order: String(row.order ?? 0),
     });
     setModalOpen(true);
   }
@@ -83,7 +115,7 @@ export default function DoctorsPage() {
   async function toggleActive(row: DoctorRow) {
     try {
       await apiPatch(`/doctors/${row.id}`, { active: !row.active });
-      await load();
+      await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Cập nhật thất bại');
     }
@@ -99,6 +131,8 @@ export default function DoctorsPage() {
         specialty: { vi: form.specialtyVi, ko: form.specialtyKo },
         bio: { vi: form.bioVi, ko: form.bioKo },
         yearsExp: Number(form.yearsExp),
+        avatarUrl: form.avatarUrl || null,
+        order: Number(form.order),
       };
       if (editId) {
         await apiPatch(`/doctors/${editId}`, payload);
@@ -106,7 +140,7 @@ export default function DoctorsPage() {
         await apiPost('/doctors', { ...payload, email: form.email, password: form.password });
       }
       setModalOpen(false);
-      await load();
+      await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Lưu thất bại');
     } finally {
@@ -144,8 +178,14 @@ export default function DoctorsPage() {
         </button>
       </div>
 
-      {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</div>
+      <AdminSearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Tìm bác sĩ theo tên, email hoặc chuyên môn..."
+      />
+
+      {(error || listError) && (
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error || listError}</div>
       )}
 
       <AdminTable
@@ -168,12 +208,27 @@ export default function DoctorsPage() {
         )}
       />
 
+      {meta && (
+        <AdminPagination
+          page={page}
+          totalPages={meta.totalPages}
+          total={meta.total}
+          onPageChange={setPage}
+        />
+      )}
+
       <AdminFormModal
         title={editId ? 'Sửa bác sĩ' : 'Thêm bác sĩ'}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        maxWidthClassName="max-w-2xl"
       >
         <form onSubmit={handleSave} className="space-y-4">
+          <AdminImageUpload
+            value={form.avatarUrl || null}
+            onChange={(url) => field('avatarUrl', url ?? '')}
+            label="Ảnh đại diện"
+          />
           {!editId && (
             <div className="grid grid-cols-2 gap-3">
               <DField label="Email" value={form.email} onChange={(v) => field('email', v)} type="email" required />
@@ -192,7 +247,10 @@ export default function DoctorsPage() {
             <DField label="Tiểu sử (VI)" value={form.bioVi} onChange={(v) => field('bioVi', v)} multiline />
             <DField label="Tiểu sử (KO)" value={form.bioKo} onChange={(v) => field('bioKo', v)} multiline />
           </div>
-          <DField label="Số năm kinh nghiệm" value={form.yearsExp} onChange={(v) => field('yearsExp', v)} type="number" required />
+          <div className="grid grid-cols-2 gap-3">
+            <DField label="Số năm kinh nghiệm" value={form.yearsExp} onChange={(v) => field('yearsExp', v)} type="number" required />
+            <DField label="Thứ tự hiển thị" value={form.order} onChange={(v) => field('order', v)} type="number" />
+          </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-full border border-[#ddd0ca] text-sm text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">Hủy</button>
             <button type="submit" disabled={saving} className="px-4 py-2 rounded-full bg-[#B76E79] text-white text-sm font-medium hover:bg-[#a35d68] disabled:opacity-60 transition-colors">

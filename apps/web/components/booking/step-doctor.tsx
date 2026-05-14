@@ -1,12 +1,15 @@
 'use client';
 
-// step-doctor.tsx — Booking step 2: Doctor selection cards
+// step-doctor.tsx — Booking step 2: Doctor selection cards (i18n)
 // Fetches doctors from API and renders selectable cards with specialty info
 
 import { useEffect, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Star, CheckCircle2 } from 'lucide-react';
 import { apiGet } from '@/lib/api-client';
 import type { Doctor } from '@/lib/api-types';
+import { localizedText } from '@/lib/locale-content';
+import { resolveMediaUrl } from '@/lib/media-url';
 
 const AVATAR_GRADIENTS = [
   'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -23,6 +26,8 @@ interface StepDoctorProps {
 }
 
 export function StepDoctor({ selectedId, onSelect }: StepDoctorProps) {
+  const t = useTranslations('doctors');
+  const locale = useLocale();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -30,9 +35,9 @@ export function StepDoctor({ selectedId, onSelect }: StepDoctorProps) {
   useEffect(() => {
     apiGet<Doctor[]>('/doctors')
       .then(setDoctors)
-      .catch(() => setError('Không thể tải danh sách bác sĩ.'))
+      .catch(() => setError(t('loadError')))
       .finally(() => setLoading(false));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
@@ -56,7 +61,7 @@ export function StepDoctor({ selectedId, onSelect }: StepDoctorProps) {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {doctors.map((doctor, i) => {
         const isSelected = doctor.id === selectedId;
-        const initials = doctor.name
+        const initials = doctor.user.name
           .split(' ')
           .slice(-2)
           .map((w) => w[0])
@@ -76,24 +81,33 @@ export function StepDoctor({ selectedId, onSelect }: StepDoctorProps) {
           >
             <div className="flex items-start justify-between mb-3">
               <div
-                className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
-                style={{ background: AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length] }}
+                className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 overflow-hidden"
+                style={doctor.avatarUrl ? undefined : { background: AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length] }}
               >
-                {initials}
+                {doctor.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={resolveMediaUrl(doctor.avatarUrl)} alt={doctor.user.name} className="h-full w-full object-cover" />
+                ) : (
+                  initials
+                )}
               </div>
               {isSelected && (
                 <CheckCircle2 size={20} className="text-[#D4A574] flex-shrink-0" />
               )}
             </div>
-            <h3 className="font-semibold text-[#1C1917] text-sm mb-0.5">{doctor.name}</h3>
+            <h3 className="font-semibold text-[#1C1917] text-sm mb-0.5">{doctor.user.name}</h3>
             <p className="text-[#D4A574] text-xs font-medium mb-2">
-              {doctor.specialty?.vi ?? ''}
+              {localizedText(doctor.specialty, locale)}
             </p>
             <div className="flex items-center gap-1.5 mb-3">
               <Star size={11} className="text-[#D4A574] fill-[#D4A574]" />
-              <span className="text-xs text-[#A8A29E]">{doctor.yearsExp} năm kinh nghiệm</span>
+              <span className="text-xs text-[#A8A29E]">
+                {t('yearsExp', { years: doctor.yearsExp })}
+              </span>
             </div>
-            <p className="text-[#A8A29E] text-xs line-clamp-2">{doctor.bio?.vi ?? ''}</p>
+            <p className="text-[#A8A29E] text-xs line-clamp-2">
+              {localizedText(doctor.bio, locale)}
+            </p>
           </button>
         );
       })}

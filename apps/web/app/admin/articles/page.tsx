@@ -3,12 +3,21 @@
 // admin/articles/page.tsx — Articles list + create/edit/publish/delete for SUPERADMIN
 // Content field is plain textarea (no Tiptap for MVP)
 
-import { useEffect, useState, useCallback } from 'react';
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api-client';
+import { useState } from 'react';
+import { apiPost, apiPatch, apiDelete } from '@/lib/api-client';
 import { AdminTable } from '@/components/admin/admin-table';
 import { AdminFormModal } from '@/components/admin/admin-form-modal';
+import { AdminImageUpload } from '@/components/admin/admin-image-upload';
+import { AdminSearchBar } from '@/components/admin/admin-search-bar';
+import { AdminPagination } from '@/components/admin/admin-pagination';
+import { TiptapEditor } from '@/components/admin/tiptap-editor';
+import { useAdminList } from '@/hooks/use-admin-list';
 import { Pencil, Trash2, Plus, Eye, EyeOff } from 'lucide-react';
 import type { Article } from '@/lib/api-types';
+import { generateHTML } from '@tiptap/html';
+import TiptapImage from '@tiptap/extension-image';
+import TiptapLink from '@tiptap/extension-link';
+import StarterKit from '@tiptap/starter-kit';
 
 const EMPTY_FORM = {
   slug: '',
@@ -16,44 +25,44 @@ const EMPTY_FORM = {
   titleKo: '',
   excerptVi: '',
   excerptKo: '',
-  content: '',
+  contentVi: '<p></p>',
+  contentKo: '<p></p>',
+  coverUrl: '',
+  featured: false,
   tags: '',
 };
 
 type FormState = typeof EMPTY_FORM;
 
 export default function ArticlesPage() {
-  const [rows, setRows] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [contentTab, setContentTab] = useState<'vi' | 'ko'>('vi');
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await apiGet<Article[]>('/articles');
-      setRows(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Lỗi tải bài viết');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const {
+    data: rows,
+    meta,
+    loading,
+    error: listError,
+    search,
+    setSearch,
+    page,
+    setPage,
+    reload,
+  } = useAdminList<Article>({ url: '/articles/admin' });
 
   function openCreate() {
     setEditId(null);
     setForm(EMPTY_FORM);
+    setContentTab('vi');
     setModalOpen(true);
   }
 
   function openEdit(row: Article) {
+    const content = normalizeContent(row.content);
     setEditId(row.id);
     setForm({
       slug: row.slug,
@@ -61,16 +70,20 @@ export default function ArticlesPage() {
       titleKo: row.title.ko,
       excerptVi: row.excerpt.vi,
       excerptKo: row.excerpt.ko,
-      content: row.content ?? '',
+      contentVi: content.vi,
+      contentKo: content.ko,
+      coverUrl: row.coverUrl ?? '',
+      featured: row.featured ?? false,
       tags: (row.tags ?? []).join(', '),
     });
+    setContentTab('vi');
     setModalOpen(true);
   }
 
   async function togglePublish(row: Article) {
     try {
-      await apiPatch(`/articles/${row.id}/publish`, { published: !row.published });
-      await load();
+      await apiPatch(`/articles/${row.id}/publish`, { published: !row.publishedAt });
+      await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Cập nhật thất bại');
     }
@@ -84,7 +97,9 @@ export default function ArticlesPage() {
         slug: form.slug,
         title: { vi: form.titleVi, ko: form.titleKo },
         excerpt: { vi: form.excerptVi, ko: form.excerptKo },
-        content: form.content,
+        content: { vi: form.contentVi, ko: form.contentKo },
+        coverUrl: form.coverUrl || null,
+        featured: form.featured,
         tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
       };
       if (editId) {
@@ -93,7 +108,7 @@ export default function ArticlesPage() {
         await apiPost('/articles', payload);
       }
       setModalOpen(false);
-      await load();
+      await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Lưu thất bại');
     } finally {
@@ -106,13 +121,13 @@ export default function ArticlesPage() {
     try {
       await apiDelete(`/articles/${deleteId}`);
       setDeleteId(null);
-      await load();
+      await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Xóa thất bại');
     }
   }
 
-  function field(key: keyof FormState, value: string) {
+  function field(key: keyof FormState, value: string | boolean) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -120,9 +135,16 @@ export default function ArticlesPage() {
     { key: 'title', label: 'Tiêu đề', render: (r: Article) => r.title.vi },
     { key: 'slug', label: 'Slug' },
     {
-      key: 'published', label: 'Trạng thái', render: (r: Article) => (
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.published ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-          {r.published ? 'Đã đăng' : 'Bản nháp'}
+      key: 'featured', label: 'Nổi bật', render: (r: Article) => (
+        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.featured ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
+          {r.featured ? 'Có' : 'Không'}
+        </span>
+      ),
+    },
+    {
+      key: 'publishedAt', label: 'Trạng thái', render: (r: Article) => (
+        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.publishedAt ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+          {r.publishedAt ? 'Đã đăng' : 'Bản nháp'}
         </span>
       ),
     },
@@ -142,8 +164,14 @@ export default function ArticlesPage() {
         </button>
       </div>
 
-      {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</div>
+      <AdminSearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Tìm bài viết theo tiêu đề hoặc slug..."
+      />
+
+      {(error || listError) && (
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error || listError}</div>
       )}
 
       <AdminTable
@@ -154,10 +182,10 @@ export default function ArticlesPage() {
           <>
             <button
               onClick={() => togglePublish(row)}
-              className={`p-1.5 rounded-lg transition-colors ${row.published ? 'text-green-600 hover:bg-green-50' : 'text-amber-500 hover:bg-amber-50'}`}
-              title={row.published ? 'Hủy đăng' : 'Đăng bài'}
+              className={`p-1.5 rounded-lg transition-colors ${row.publishedAt ? 'text-green-600 hover:bg-green-50' : 'text-amber-500 hover:bg-amber-50'}`}
+              title={row.publishedAt ? 'Hủy đăng' : 'Đăng bài'}
             >
-              {row.published ? <EyeOff size={15} /> : <Eye size={15} />}
+              {row.publishedAt ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
             <button onClick={() => openEdit(row)} className="p-1.5 rounded-lg text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">
               <Pencil size={15} />
@@ -169,11 +197,21 @@ export default function ArticlesPage() {
         )}
       />
 
+      {meta && (
+        <AdminPagination
+          page={page}
+          totalPages={meta.totalPages}
+          total={meta.total}
+          onPageChange={setPage}
+        />
+      )}
+
       {/* Create / Edit modal */}
       <AdminFormModal
         title={editId ? 'Sửa bài viết' : 'Thêm bài viết'}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        maxWidthClassName="max-w-3xl"
       >
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -181,11 +219,41 @@ export default function ArticlesPage() {
             <AField label="Tiêu đề (KO)" value={form.titleKo} onChange={(v) => field('titleKo', v)} />
           </div>
           <AField label="Slug" value={form.slug} onChange={(v) => field('slug', v)} required />
+          <AdminImageUpload
+            value={form.coverUrl || null}
+            onChange={(url) => field('coverUrl', url ?? '')}
+            label="Ảnh bìa"
+          />
           <div className="grid grid-cols-2 gap-3">
             <AField label="Tóm tắt (VI)" value={form.excerptVi} onChange={(v) => field('excerptVi', v)} multiline />
             <AField label="Tóm tắt (KO)" value={form.excerptKo} onChange={(v) => field('excerptKo', v)} multiline />
           </div>
-          <AField label="Nội dung" value={form.content} onChange={(v) => field('content', v)} multiline tall />
+          <div>
+            <label className="block text-xs font-medium text-[#6b4c41] mb-1 uppercase tracking-wider">Nội dung</label>
+            <div className="mb-2 flex gap-1">
+              <ContentTabButton active={contentTab === 'vi'} onClick={() => setContentTab('vi')}>
+                Tiếng Việt
+              </ContentTabButton>
+              <ContentTabButton active={contentTab === 'ko'} onClick={() => setContentTab('ko')}>
+                Hàn Quốc
+              </ContentTabButton>
+            </div>
+            <TiptapEditor
+              key={contentTab}
+              value={contentTab === 'vi' ? form.contentVi : form.contentKo}
+              onChange={(html) => field(contentTab === 'vi' ? 'contentVi' : 'contentKo', html)}
+              placeholder={contentTab === 'vi' ? 'Nhập nội dung tiếng Việt...' : '한국어 내용을 입력하세요...'}
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm text-[#3d2b25]">
+            <input
+              type="checkbox"
+              checked={form.featured}
+              onChange={(e) => field('featured', e.target.checked)}
+              className="rounded"
+            />
+            Bài viết nổi bật
+          </label>
           <AField label="Tags (cách nhau bởi dấu phẩy)" value={form.tags} onChange={(v) => field('tags', v)} />
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-full border border-[#ddd0ca] text-sm text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">Hủy</button>
@@ -205,6 +273,73 @@ export default function ArticlesPage() {
         </div>
       </AdminFormModal>
     </div>
+  );
+}
+
+const articleHtmlExtensions = [StarterKit, TiptapLink, TiptapImage];
+
+function normalizeContent(content: Article['content']): { vi: string; ko: string } {
+  if (typeof content === 'string') {
+    return { vi: toHtml(content), ko: '<p></p>' };
+  }
+  if (content && typeof content === 'object') {
+    const localized = content as Record<string, unknown>;
+    return {
+      vi: toHtml(localized.vi),
+      ko: toHtml(localized.ko),
+    };
+  }
+  return { vi: '<p></p>', ko: '<p></p>' };
+}
+
+function toHtml(value: unknown) {
+  if (!value) return '<p></p>';
+  if (typeof value === 'string') return ensureHtml(value);
+  if (typeof value === 'object' && 'type' in value) {
+    try {
+      return generateHTML(value as never, articleHtmlExtensions);
+    } catch {
+      return '<p></p>';
+    }
+  }
+  return '<p></p>';
+}
+
+function ensureHtml(value: string) {
+  if (!value.trim()) return '<p></p>';
+  return value.trim().startsWith('<') ? value : `<p>${escapeHtml(value)}</p>`;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function ContentTabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-t-lg border px-3 py-1.5 text-xs font-medium ${
+        active
+          ? 'border-[#ddd0ca] border-b-white bg-white text-[#3d2b25]'
+          : 'border-transparent text-[#8a6a62] hover:text-[#3d2b25]'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

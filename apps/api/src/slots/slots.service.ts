@@ -11,7 +11,14 @@ import { generateSlotsSchema, slotQuerySchema } from '@spa/shared';
 // Working hours: 09:00-12:00 and 14:00-18:00 in 30-min increments
 const MORNING_SLOTS = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
 const AFTERNOON_SLOTS = [
-  '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+  '14:00',
+  '14:30',
+  '15:00',
+  '15:30',
+  '16:00',
+  '16:30',
+  '17:00',
+  '17:30',
 ];
 const ALL_START_TIMES = [...MORNING_SLOTS, ...AFTERNOON_SLOTS];
 
@@ -30,7 +37,10 @@ export class SlotsService {
 
   // ── Generate slots for a doctor over N days ──────────────────────────────────
 
-  async generateForDoctor(body: unknown, currentUser: { id: string; role: string }) {
+  async generateForDoctor(
+    body: unknown,
+    currentUser: { id: string; role: string },
+  ) {
     const parsed = generateSlotsSchema.safeParse(body);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.flatten().fieldErrors);
@@ -38,7 +48,9 @@ export class SlotsService {
 
     const { doctorId, fromDate, days } = parsed.data;
 
-    const doctor = await this.prisma.doctorProfile.findUnique({ where: { id: doctorId } });
+    const doctor = await this.prisma.doctorProfile.findUnique({
+      where: { id: doctorId },
+    });
     if (!doctor) throw new NotFoundException(`Doctor ${doctorId} not found`);
 
     // DOCTOR role can only generate own slots
@@ -46,9 +58,15 @@ export class SlotsService {
       throw new ForbiddenException('Doctors can only manage their own slots');
     }
 
-    const slots: { doctorId: string; date: Date; startTime: string; endTime: string }[] = [];
+    const slots: {
+      doctorId: string;
+      date: Date;
+      startTime: string;
+      endTime: string;
+    }[] = [];
 
-    const start = new Date(`${fromDate}T00:00:00.000Z`);
+    // Parse as VN timezone (UTC+7) to avoid off-by-one date issues
+    const start = new Date(`${fromDate}T00:00:00+07:00`);
     for (let i = 0; i < (days ?? 30); i++) {
       const date = new Date(start);
       date.setUTCDate(start.getUTCDate() + i);
@@ -81,7 +99,7 @@ export class SlotsService {
     }
 
     const { doctorId, date } = parsed.data;
-    const dateObj = new Date(`${date}T00:00:00.000Z`);
+    const dateObj = new Date(`${date}T00:00:00+07:00`);
 
     return this.prisma.timeSlot.findMany({
       where: { doctorId, date: dateObj, status: 'AVAILABLE' },
@@ -98,14 +116,22 @@ export class SlotsService {
     });
     if (!slot) throw new NotFoundException(`Slot ${id} not found`);
     if (slot.status === 'BOOKED') {
-      throw new BadRequestException('Cannot block a slot that is already booked');
+      throw new BadRequestException(
+        'Cannot block a slot that is already booked',
+      );
     }
 
     // DOCTOR role can only block own slots
-    if (currentUser.role === 'DOCTOR' && slot.doctor.userId !== currentUser.id) {
+    if (
+      currentUser.role === 'DOCTOR' &&
+      slot.doctor.userId !== currentUser.id
+    ) {
       throw new ForbiddenException('Doctors can only manage their own slots');
     }
 
-    return this.prisma.timeSlot.update({ where: { id }, data: { status: 'BLOCKED' } });
+    return this.prisma.timeSlot.update({
+      where: { id },
+      data: { status: 'BLOCKED' },
+    });
   }
 }

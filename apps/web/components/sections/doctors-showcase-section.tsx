@@ -1,105 +1,126 @@
+// doctors-showcase-section.tsx — Premium doctor carousel cards
 'use client';
 
-// doctors-showcase-section.tsx — Horizontal doctor card layout with fade-in animation
-
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Award, Star } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import type { Doctor } from '@/lib/api-types';
+import { localizedText } from '@/lib/locale-content';
+import { resolveMediaUrl } from '@/lib/media-url';
 
 interface Props {
   doctors: Doctor[];
 }
 
 const AVATAR_GRADIENTS = [
-  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+  'linear-gradient(135deg, #172033 0%, #D4A574 100%)',
+  'linear-gradient(135deg, #3d2b25 0%, #B76E79 100%)',
+  'linear-gradient(135deg, #0b2c33 0%, #D4A574 100%)',
+  'linear-gradient(135deg, #211f1b 0%, #6f8f8d 100%)',
 ];
 
 function DoctorCard({ doctor, index }: { doctor: Doctor; index: number }) {
-  const initials = doctor.name
+  const t = useTranslations('doctors');
+  const locale = useLocale();
+
+  const initials = doctor.user.name
     .split(' ')
     .slice(-2)
-    .map((w) => w[0])
+    .map((word) => word[0])
     .join('')
     .toUpperCase();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 30 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="flex-shrink-0 w-64 bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+    <Link
+      href={`/doctors/${doctor.id}`}
+      className="group relative min-w-[280px] overflow-hidden rounded-3xl border border-[#E8DDD4] bg-white p-5 shadow-sm transition-transform hover:-translate-y-1"
     >
-      {/* Avatar placeholder */}
-      <div
-        className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg mb-4"
-        style={{ background: AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length] }}
-      >
-        {initials}
+      <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(110deg,#1C1917,#3d2b25,#D4A574)]" />
+
+      <div className="relative">
+        <div
+          className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border-4 border-white text-xl font-black text-white shadow-xl"
+          style={doctor.avatarUrl ? undefined : { background: AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length] }}
+        >
+          {doctor.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={resolveMediaUrl(doctor.avatarUrl)} alt={doctor.user.name} className="h-full w-full object-cover" />
+          ) : (
+            initials
+          )}
+        </div>
+
+        <div className="mt-5 flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-black text-[#1C1917]">{doctor.user.name}</h3>
+            <p className="mt-1 text-sm font-semibold text-[#B76E79]">
+              {localizedText(doctor.specialty, locale)}
+            </p>
+          </div>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F5F0E8] text-[#D4A574] transition-colors group-hover:bg-[#1C1917]">
+            <Award size={17} />
+          </span>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <div className="rounded-2xl bg-[#F5F0E8] p-3">
+            <Star size={14} className="fill-[#D4A574] text-[#D4A574]" />
+            <p className="mt-2 text-xs font-bold text-[#1C1917]">
+              {t('yearsExp', { years: doctor.yearsExp })}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-[#1C1917] p-3 text-white">
+            <Award size={14} className="text-[#D4A574]" />
+            <p className="mt-2 text-xs font-bold">{t('teamLabel')}</p>
+          </div>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between border-t border-[#E8DDD4] pt-4 text-xs font-black uppercase tracking-[0.16em] text-[#1C1917]">
+          {t('viewProfile')}
+          <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+        </div>
       </div>
-
-      <h3 className="font-semibold text-[#1C1917] text-sm mb-1">{doctor.name}</h3>
-      <p className="text-[#D4A574] text-xs font-medium mb-2">
-        {doctor.specialty?.vi ?? ''}
-      </p>
-
-      <div className="flex items-center gap-1 mb-4">
-        <Star size={11} className="text-[#D4A574] fill-[#D4A574]" />
-        <span className="text-xs text-[#A8A29E]">{doctor.yearsExp} năm kinh nghiệm</span>
-      </div>
-
-      <Link
-        href={`/doctors/${doctor.id}`}
-        className="flex items-center gap-1 text-xs font-semibold text-[#D4A574] hover:text-[#c4956a] transition-colors"
-      >
-        Xem hồ sơ <ArrowRight size={12} />
-      </Link>
-    </motion.div>
+    </Link>
   );
 }
 
 export function DoctorsShowcaseSection({ doctors }: Props) {
+  const t = useTranslations('doctors');
+
   return (
-    <section className="py-20 bg-white overflow-hidden">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12"
-        >
+    <section className="relative overflow-hidden bg-[#0b0a09] px-6 py-24 text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_30%,rgba(183,110,121,0.12),transparent_30%),linear-gradient(120deg,rgba(212,165,116,0.14),transparent_38%,rgba(111,143,141,0.10)_72%,transparent)]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#D4A574,transparent)]" />
+
+      <div className="relative mx-auto max-w-7xl">
+        <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-[#D4A574] text-xs font-semibold tracking-[0.25em] uppercase mb-3">
-              Đội Ngũ Chuyên Gia
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-[#D4A574]">
+              {t('sectionTitle')}
             </p>
             <h2
-              className="text-3xl md:text-4xl font-bold text-[#1C1917]"
+              className="mt-3 max-w-3xl text-4xl font-black leading-none md:text-6xl"
               style={{ fontFamily: 'var(--font-noto-serif-kr, serif)' }}
             >
-              Bác Sĩ Tận Tâm
+              {t('heroTitle')}
             </h2>
           </div>
           <Link
             href="/doctors"
-            className="flex items-center gap-2 text-sm font-semibold text-[#1C1917] hover:text-[#D4A574] transition-colors"
+            className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold backdrop-blur-xl transition-colors hover:border-[#D4A574] hover:text-[#D4A574]"
           >
-            Xem tất cả <ArrowRight size={14} />
+            {t('allDoctors')} <ArrowRight size={15} />
           </Link>
-        </motion.div>
+        </div>
 
         {doctors.length > 0 ? (
-          <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide">
+          <div className="flex gap-5 overflow-x-auto pb-5 [scrollbar-width:none] kb-edge-fade">
             {doctors.map((doctor, i) => (
               <DoctorCard key={doctor.id} doctor={doctor} index={i} />
             ))}
           </div>
         ) : (
-          <p className="text-[#A8A29E] text-sm">Đang cập nhật đội ngũ bác sĩ...</p>
+          <p className="text-[#C9C0B7]">{t('pageDescription')}</p>
         )}
       </div>
     </section>

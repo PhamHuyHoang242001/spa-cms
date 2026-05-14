@@ -39,6 +39,28 @@ export class BookingsController {
     return this.bookingsService.listMine(user.id, filter);
   }
 
+  // SUPERADMIN — list all bookings with filters
+  @Get()
+  @UseGuards(RolesGuard)
+  @Roles('SUPERADMIN')
+  listAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: string,
+    @Query('doctorId') doctorId?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.bookingsService.listAll({
+      page,
+      limit,
+      status,
+      doctorId,
+      from,
+      to,
+    });
+  }
+
   // Owner / DOCTOR / SUPERADMIN — get booking detail
   @Get(':id')
   findById(@Param('id') id: string, @CurrentUser() user: AuthUser) {

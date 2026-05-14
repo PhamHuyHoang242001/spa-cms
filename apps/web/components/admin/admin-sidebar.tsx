@@ -8,12 +8,14 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   CalendarDays,
+  CalendarCheck,
   Stethoscope,
   Newspaper,
   Clock,
   BookOpen,
   LogOut,
   Menu,
+  Users,
   X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -56,6 +58,18 @@ const NAV_ITEMS: NavItem[] = [
     href: '/admin/slots',
     label: 'Lịch hẹn',
     icon: <Clock size={18} />,
+    roles: ['SUPERADMIN'],
+  },
+  {
+    href: '/admin/bookings',
+    label: 'Đặt lịch',
+    icon: <CalendarCheck size={18} />,
+    roles: ['SUPERADMIN'],
+  },
+  {
+    href: '/admin/users',
+    label: 'Người dùng',
+    icon: <Users size={18} />,
     roles: ['SUPERADMIN'],
   },
   {

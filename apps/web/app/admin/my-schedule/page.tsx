@@ -26,7 +26,9 @@ export default function MySchedulePage() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void Promise.resolve().then(load);
+  }, [load]);
 
   async function updateStatus(id: string, action: 'confirm' | 'complete' | 'no-show') {
     setActionError('');

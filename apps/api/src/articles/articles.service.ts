@@ -7,6 +7,10 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { createArticleSchema, updateArticleSchema } from '@spa/shared';
+import {
+  buildPaginatedResult,
+  parsePagination,
+} from '../common/utils/pagination-utils';
 
 const PAGE_SIZE = 10;
 
@@ -61,6 +65,46 @@ export class ArticlesService {
     return { items, total, page, pageSize: PAGE_SIZE };
   }
 
+  // ── Admin list all articles, including drafts/unpublished ───────────────────
+
+  async listAll(page?: string, limit?: string, search?: string) {
+    const pagination = parsePagination(page, limit);
+    const q = search?.trim();
+    const where: Prisma.ArticleWhereInput = q
+      ? {
+          OR: [
+            { slug: { contains: q, mode: 'insensitive' } },
+            { title: { path: ['vi'], string_contains: q } },
+            { title: { path: ['ko'], string_contains: q } },
+            { excerpt: { path: ['vi'], string_contains: q } },
+            { excerpt: { path: ['ko'], string_contains: q } },
+          ],
+        }
+      : {};
+    const include = { author: { select: { id: true, name: true } } };
+
+    if (!pagination) {
+      return this.prisma.article.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include,
+      });
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.article.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include,
+        skip: pagination.skip,
+        take: pagination.take,
+      }),
+      this.prisma.article.count({ where }),
+    ]);
+
+    return buildPaginatedResult(data, total, pagination.page, pagination.limit);
+  }
+
   // ── Get single published article by slug ──────────────────────────────────────
 
   async findBySlug(slug: string) {
@@ -96,8 +140,8 @@ export class ArticlesService {
         ...parsed.data,
         slug,
         authorId,
-        title: parsed.data.title as unknown as Prisma.InputJsonValue,
-        excerpt: parsed.data.excerpt as unknown as Prisma.InputJsonValue,
+        title: parsed.data.title,
+        excerpt: parsed.data.excerpt,
         content: parsed.data.content as unknown as Prisma.InputJsonValue,
       },
     });
@@ -118,8 +162,8 @@ export class ArticlesService {
     const { title, excerpt, content, ...rest } = parsed.data;
     const updateData: Prisma.ArticleUpdateInput = {
       ...rest,
-      ...(title && { title: title as unknown as Prisma.InputJsonValue }),
-      ...(excerpt && { excerpt: excerpt as unknown as Prisma.InputJsonValue }),
+      ...(title && { title: title }),
+      ...(excerpt && { excerpt: excerpt }),
       ...(content && { content: content as unknown as Prisma.InputJsonValue }),
     };
 

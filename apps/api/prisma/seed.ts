@@ -24,6 +24,19 @@ function addThirtyMin(time: string): string {
 const adapter = new PrismaPg({ connectionString: process.env['DATABASE_URL']! });
 const prisma = new PrismaClient({ adapter });
 
+const IMG = {
+  facial: '/uploads/seed-facial.jpg',
+  aqua: '/uploads/seed-aqua.jpg',
+  goldMask: '/uploads/seed-gold-mask.jpg',
+  acne: '/uploads/seed-acne.jpg',
+  vitaminC: '/uploads/seed-vitamin-c.jpg',
+  microneedling: '/uploads/seed-microneedling.jpg',
+  bridal: '/uploads/seed-bridal.jpg',
+  doctorKim: '/uploads/seed-doctor-kim.jpg',
+  doctorPark: '/uploads/seed-doctor-park.jpg',
+  doctorNguyen: '/uploads/seed-doctor-nguyen.jpg',
+};
+
 async function main() {
   console.log('Seeding database...');
 
@@ -41,6 +54,20 @@ async function main() {
   });
   console.log('  Superadmin upserted');
 
+  // ── Customer ─────────────────────────────────────────────────────────────────
+  const customerHash = await bcrypt.hash('Customer123!', BCRYPT_ROUNDS);
+  await prisma.user.upsert({
+    where: { email: 'customer@spa.local' },
+    update: {},
+    create: {
+      email: 'customer@spa.local',
+      passwordHash: customerHash,
+      name: 'Nguyễn Khách Hàng',
+      role: 'CUSTOMER',
+    },
+  });
+  console.log('  Customer upserted');
+
   // ── Doctors ──────────────────────────────────────────────────────────────────
   const doctorHash = await bcrypt.hash('Doctor123!', BCRYPT_ROUNDS);
 
@@ -55,6 +82,7 @@ async function main() {
       },
       yearsExp: 10,
       order: 1,
+      avatarUrl: IMG.doctorKim,
     },
     {
       email: 'doctor2@spa.local',
@@ -66,6 +94,7 @@ async function main() {
       },
       yearsExp: 8,
       order: 2,
+      avatarUrl: IMG.doctorPark,
     },
     {
       email: 'doctor3@spa.local',
@@ -77,6 +106,7 @@ async function main() {
       },
       yearsExp: 6,
       order: 3,
+      avatarUrl: IMG.doctorNguyen,
     },
   ];
 
@@ -96,11 +126,18 @@ async function main() {
 
     const profile = await prisma.doctorProfile.upsert({
       where: { userId: user.id },
-      update: {},
+      update: {
+        specialty: d.specialty,
+        bio: d.bio,
+        avatarUrl: d.avatarUrl,
+        yearsExp: d.yearsExp,
+        order: d.order,
+      },
       create: {
         userId: user.id,
         specialty: d.specialty,
         bio: d.bio,
+        avatarUrl: d.avatarUrl,
         yearsExp: d.yearsExp,
         order: d.order,
       },
@@ -123,6 +160,8 @@ async function main() {
       durationMin: 60,
       featured: true,
       order: 1,
+      coverUrl: IMG.facial,
+      gallery: [IMG.facial, IMG.aqua, IMG.vitaminC],
     },
     {
       slug: 'aqua-peel',
@@ -135,6 +174,8 @@ async function main() {
       durationMin: 75,
       featured: false,
       order: 2,
+      coverUrl: IMG.aqua,
+      gallery: [IMG.aqua, IMG.facial, IMG.goldMask],
     },
     {
       slug: 'gold-jelly-mask',
@@ -147,6 +188,8 @@ async function main() {
       durationMin: 60,
       featured: false,
       order: 3,
+      coverUrl: IMG.goldMask,
+      gallery: [IMG.goldMask, IMG.facial, IMG.bridal],
     },
     {
       slug: 'acne-clear-treatment',
@@ -159,6 +202,8 @@ async function main() {
       durationMin: 90,
       featured: true,
       order: 4,
+      coverUrl: IMG.acne,
+      gallery: [IMG.acne, IMG.aqua, IMG.vitaminC],
     },
     {
       slug: 'whitening-vit-c',
@@ -171,6 +216,8 @@ async function main() {
       durationMin: 60,
       featured: false,
       order: 5,
+      coverUrl: IMG.vitaminC,
+      gallery: [IMG.vitaminC, IMG.facial, IMG.goldMask],
     },
     {
       slug: 'mts-micro-needling',
@@ -183,6 +230,8 @@ async function main() {
       durationMin: 75,
       featured: true,
       order: 6,
+      coverUrl: IMG.microneedling,
+      gallery: [IMG.microneedling, IMG.acne, IMG.facial],
     },
     {
       slug: 'couple-bridal-package',
@@ -195,13 +244,24 @@ async function main() {
       durationMin: 120,
       featured: true,
       order: 7,
+      coverUrl: IMG.bridal,
+      gallery: [IMG.bridal, IMG.facial, IMG.goldMask],
     },
   ];
 
   for (const s of services) {
     await prisma.service.upsert({
       where: { slug: s.slug },
-      update: {},
+      update: {
+        name: s.name,
+        description: s.description,
+        priceVnd: s.priceVnd,
+        durationMin: s.durationMin,
+        coverUrl: s.coverUrl,
+        gallery: s.gallery,
+        featured: s.featured,
+        order: s.order,
+      },
       create: s,
     });
     console.log(`  Service upserted: ${s.slug}`);
@@ -258,6 +318,7 @@ async function main() {
       },
       tags: ['skincare', 'k-beauty', 'tips'],
       featured: true,
+      coverUrl: IMG.facial,
     },
     {
       slug: 'xu-huong-lam-dep-k-beauty-2026',
@@ -272,6 +333,7 @@ async function main() {
       },
       tags: ['trends', 'k-beauty', '2026'],
       featured: true,
+      coverUrl: IMG.bridal,
     },
     {
       slug: 'loi-ich-cua-aqua-peel',
@@ -286,13 +348,22 @@ async function main() {
       },
       tags: ['aqua-peel', 'treatment', 'skincare'],
       featured: false,
+      coverUrl: IMG.aqua,
     },
   ];
 
   for (const article of sampleArticles) {
     await prisma.article.upsert({
       where: { slug: article.slug },
-      update: {},
+      update: {
+        title: article.title,
+        excerpt: article.excerpt,
+        content: article.content,
+        coverUrl: article.coverUrl,
+        tags: article.tags,
+        featured: article.featured,
+        publishedAt: new Date(),
+      },
       create: {
         ...article,
         authorId: admin.id,

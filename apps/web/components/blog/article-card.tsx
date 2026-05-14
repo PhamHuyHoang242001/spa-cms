@@ -1,5 +1,7 @@
 // article-card.tsx — Blog article preview card with title, excerpt, date, tags
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
+import { localizedText } from '@/lib/locale-content';
+import { resolveMediaUrl } from '@/lib/media-url';
 
 interface ArticleCardProps {
   slug: string;
@@ -8,6 +10,7 @@ interface ArticleCardProps {
   publishedAt: string | null;
   tags: string[];
   coverUrl?: string | null;
+  locale: string;
 }
 
 export function ArticleCard({
@@ -17,9 +20,10 @@ export function ArticleCard({
   publishedAt,
   tags,
   coverUrl,
+  locale,
 }: ArticleCardProps) {
   const formattedDate = publishedAt
-    ? new Date(publishedAt).toLocaleDateString('vi-VN', {
+    ? new Date(publishedAt).toLocaleDateString(locale === 'ko' ? 'ko-KR' : 'vi-VN', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -34,8 +38,8 @@ export function ArticleCard({
           {coverUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={coverUrl}
-              alt={title.vi}
+              src={resolveMediaUrl(coverUrl)}
+              alt={localizedText(title, locale)}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -60,12 +64,12 @@ export function ArticleCard({
 
           {/* Title */}
           <h2 className="text-[#3d2c2c] font-semibold text-lg leading-snug mb-2 group-hover:text-[#B76E79] transition-colors line-clamp-2">
-            {title.vi}
+            {localizedText(title, locale)}
           </h2>
 
           {/* Excerpt */}
           <p className="text-[#6b4c41] text-sm leading-relaxed line-clamp-3 mb-4">
-            {excerpt.vi}
+            {localizedText(excerpt, locale)}
           </p>
 
           {/* Date */}

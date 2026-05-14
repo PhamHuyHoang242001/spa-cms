@@ -1,10 +1,10 @@
 'use client';
 
-// require-auth.tsx — Wrapper that redirects unauthenticated users to /login
-// Shows a loading spinner while auth state is being determined
+// require-auth.tsx — Wrapper that redirects unauthenticated users to /login (i18n)
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 import { useAuth } from '@/lib/auth-context';
 
 interface RequireAuthProps {
@@ -14,6 +14,7 @@ interface RequireAuthProps {
 export function RequireAuth({ children }: RequireAuthProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const t = useTranslations('common');
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -26,7 +27,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
       <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-2 border-[#D4A574] border-t-transparent animate-spin" />
-          <p className="text-sm text-[#A8A29E]">Đang xác thực…</p>
+          <p className="text-sm text-[#A8A29E]">{t('authenticating')}</p>
         </div>
       </div>
     );

@@ -29,7 +29,10 @@ export class SlotsController {
   @Post('generate')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPERADMIN', 'DOCTOR')
-  generate(@Body() body: unknown, @CurrentUser() user: { id: string; role: string }) {
+  generate(
+    @Body() body: unknown,
+    @CurrentUser() user: { id: string; role: string },
+  ) {
     return this.slotsService.generateForDoctor(body, user);
   }
 
@@ -37,7 +40,10 @@ export class SlotsController {
   @Patch(':id/block')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPERADMIN', 'DOCTOR')
-  block(@Param('id') id: string, @CurrentUser() user: { id: string; role: string }) {
+  block(
+    @Param('id') id: string,
+    @CurrentUser() user: { id: string; role: string },
+  ) {
     return this.slotsService.block(id, user);
   }
 }

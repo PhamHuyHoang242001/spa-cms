@@ -7,6 +7,11 @@ const i18nTextSchema = z.object({
   ko: z.string().min(1, 'Korean text is required'),
 });
 
+const imageUrlSchema = z.union([
+  z.string().url(),
+  z.string().regex(/^\/uploads\/[^/]+$/, 'Invalid upload path'),
+]);
+
 // Tiptap JSON document schema (permissive — validates basic structure only)
 const tiptapDocSchema = z.object({
   type: z.literal('doc'),
@@ -14,15 +19,15 @@ const tiptapDocSchema = z.object({
 });
 
 const i18nContentSchema = z.object({
-  vi: tiptapDocSchema,
-  ko: tiptapDocSchema,
+  vi: z.union([tiptapDocSchema, z.string().min(1, 'Vietnamese content is required')]),
+  ko: z.union([tiptapDocSchema, z.string().min(1, 'Korean content is required')]),
 });
 
 export const createArticleSchema = z.object({
   title: i18nTextSchema,
   excerpt: i18nTextSchema,
   content: i18nContentSchema,
-  coverUrl: z.string().url().optional(),
+  coverUrl: imageUrlSchema.optional().nullable(),
   tags: z.array(z.string()).default([]),
   featured: z.boolean().default(false),
 });
@@ -31,7 +36,7 @@ export const updateArticleSchema = z.object({
   title: i18nTextSchema.optional(),
   excerpt: i18nTextSchema.optional(),
   content: i18nContentSchema.optional(),
-  coverUrl: z.string().url().optional().nullable(),
+  coverUrl: imageUrlSchema.optional().nullable(),
   tags: z.array(z.string()).optional(),
   featured: z.boolean().optional(),
 });

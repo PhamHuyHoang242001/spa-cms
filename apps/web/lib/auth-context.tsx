@@ -11,6 +11,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  AUTH_FAILURE_EVENT,
   apiGet,
   apiPost,
   clearTokens,
@@ -51,6 +52,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Listen for global auth-failure events (access + refresh both expired mid-session).
+  // Clears user state so the admin layout's useEffect can redirect to login.
+  useEffect(() => {
+    const handleAuthFailure = () => {
+      clearTokens();
+      setUser(null);
+    };
+    window.addEventListener(AUTH_FAILURE_EVENT, handleAuthFailure);
+    return () => window.removeEventListener(AUTH_FAILURE_EVENT, handleAuthFailure);
+  }, []);
+
   // Restore session on mount using stored refresh token
   useEffect(() => {
     const storedRefresh =
@@ -59,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         : null;
 
     if (!storedRefresh) {
-      setIsLoading(false);
+      window.setTimeout(() => setIsLoading(false), 0);
       return;
     }
 
@@ -70,10 +82,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
       .then(({ accessToken, refreshToken }) => {
         setTokens(accessToken, refreshToken);
-        return apiGet<User>('/auth/me');
+        return apiGet<{ user: User }>('/auth/me');
       })
-      .then((me) => setUser(me))
-      .catch(() => clearTokens())
+      .then(({ user }) => setUser(user))
+      .catch((err: unknown) => {
+        // Only clear tokens on auth errors (401); keep session on transient server errors
+        const isAuthError = err instanceof Error && (err.message === 'Unauthorized' || err.message.includes('401'));
+        if (isAuthError || !(err instanceof Error)) clearTokens();
+      })
       .finally(() => setIsLoading(false));
   }, []);
 

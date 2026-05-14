@@ -1,6 +1,6 @@
 # K-Beauty Spa CMS
 
-Turborepo monorepo — Next.js 15 (web) + NestJS 11 (api) + PostgreSQL + Prisma.
+Turborepo monorepo — Next.js 16 (web) + NestJS 11 (api) + PostgreSQL + Prisma.
 
 ## Prerequisites
 
@@ -19,6 +19,7 @@ pnpm db:up
 
 # 3. Copy env and fill secrets (first time only)
 cp .env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
 
 # 4. Start both apps in dev mode
 pnpm dev
@@ -57,6 +58,16 @@ spa-cms/
 ├── pnpm-workspace.yaml
 └── .github/workflows/ci.yml
 ```
+
+## Deployment
+
+Use one GitHub repo with two deployment targets:
+
+- Vercel project: `apps/web`
+- Render Blueprint/API: root `render.yaml`
+
+See `docs/deployment-guide.md` for exact build commands and environment
+variables.
 
 ## Plan
 

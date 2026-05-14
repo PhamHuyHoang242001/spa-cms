@@ -3,10 +3,15 @@
 // admin/services/page.tsx — Services CRUD for SUPERADMIN
 // Table list + modal form for create/edit + delete confirm
 
-import { useEffect, useState, useCallback } from 'react';
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api-client';
+import { useState } from 'react';
+import { apiPost, apiPatch, apiDelete } from '@/lib/api-client';
 import { AdminTable } from '@/components/admin/admin-table';
 import { AdminFormModal } from '@/components/admin/admin-form-modal';
+import { AdminGalleryManager } from '@/components/admin/admin-gallery-manager';
+import { AdminImageUpload } from '@/components/admin/admin-image-upload';
+import { AdminSearchBar } from '@/components/admin/admin-search-bar';
+import { AdminPagination } from '@/components/admin/admin-pagination';
+import { useAdminList } from '@/hooks/use-admin-list';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 
 interface ServiceRow {
@@ -16,6 +21,9 @@ interface ServiceRow {
   description: { vi: string; ko: string };
   priceVnd: number;
   durationMin: number;
+  coverUrl?: string | null;
+  gallery?: string[];
+  order?: number;
   featured: boolean;
   active: boolean;
 }
@@ -28,35 +36,33 @@ const EMPTY_FORM = {
   descKo: '',
   priceVnd: '',
   durationMin: '',
+  coverUrl: '',
+  gallery: [] as string[],
+  order: '0',
   featured: false,
+  active: true,
 };
 
 type FormState = typeof EMPTY_FORM;
 
 export default function ServicesPage() {
-  const [rows, setRows] = useState<ServiceRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await apiGet<ServiceRow[]>('/services');
-      setRows(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Lỗi tải dịch vụ');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const {
+    data: rows,
+    meta,
+    loading,
+    error: listError,
+    search,
+    setSearch,
+    page,
+    setPage,
+    reload,
+  } = useAdminList<ServiceRow>({ url: '/services/admin' });
 
   function openCreate() {
     setEditId(null);
@@ -74,7 +80,11 @@ export default function ServicesPage() {
       descKo: row.description.ko,
       priceVnd: String(row.priceVnd),
       durationMin: String(row.durationMin),
+      coverUrl: row.coverUrl ?? '',
+      gallery: row.gallery ?? [],
+      order: String(row.order ?? 0),
       featured: row.featured,
+      active: row.active,
     });
     setModalOpen(true);
   }
@@ -89,7 +99,11 @@ export default function ServicesPage() {
         description: { vi: form.descVi, ko: form.descKo },
         priceVnd: Number(form.priceVnd),
         durationMin: Number(form.durationMin),
+        coverUrl: form.coverUrl || null,
+        gallery: form.gallery,
+        order: Number(form.order),
         featured: form.featured,
+        active: form.active,
       };
       if (editId) {
         await apiPatch(`/services/${editId}`, payload);
@@ -97,7 +111,7 @@ export default function ServicesPage() {
         await apiPost('/services', payload);
       }
       setModalOpen(false);
-      await load();
+      await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Lưu thất bại');
     } finally {
@@ -110,13 +124,13 @@ export default function ServicesPage() {
     try {
       await apiDelete(`/services/${deleteId}`);
       setDeleteId(null);
-      await load();
+      await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Xóa thất bại');
     }
   }
 
-  function field(key: keyof FormState, value: string | boolean) {
+  function field(key: keyof FormState, value: string | boolean | string[]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -152,8 +166,14 @@ export default function ServicesPage() {
         </button>
       </div>
 
-      {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</div>
+      <AdminSearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Tìm dịch vụ theo tên hoặc slug..."
+      />
+
+      {(error || listError) && (
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error || listError}</div>
       )}
 
       <AdminTable
@@ -172,13 +192,33 @@ export default function ServicesPage() {
         )}
       />
 
+      {meta && (
+        <AdminPagination
+          page={page}
+          totalPages={meta.totalPages}
+          total={meta.total}
+          onPageChange={setPage}
+        />
+      )}
+
       {/* Create / Edit modal */}
       <AdminFormModal
         title={editId ? 'Sửa dịch vụ' : 'Thêm dịch vụ'}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        maxWidthClassName="max-w-2xl"
       >
         <form onSubmit={handleSave} className="space-y-4">
+          <AdminImageUpload
+            value={form.coverUrl || null}
+            onChange={(url) => field('coverUrl', url ?? '')}
+            label="Ảnh bìa"
+          />
+          <AdminGalleryManager
+            value={form.gallery}
+            onChange={(urls) => field('gallery', urls)}
+            label="Thư viện ảnh"
+          />
           <div className="grid grid-cols-2 gap-3">
             <Field label="Tên (VI)" value={form.nameVi} onChange={(v) => field('nameVi', v)} required />
             <Field label="Tên (KO)" value={form.nameKo} onChange={(v) => field('nameKo', v)} />
@@ -192,10 +232,19 @@ export default function ServicesPage() {
             <Field label="Giá (VND)" value={form.priceVnd} onChange={(v) => field('priceVnd', v)} type="number" required />
             <Field label="Thời gian (phút)" value={form.durationMin} onChange={(v) => field('durationMin', v)} type="number" required />
           </div>
-          <label className="flex items-center gap-2 text-sm text-[#3d2b25]">
-            <input type="checkbox" checked={form.featured} onChange={(e) => field('featured', e.target.checked)} className="rounded" />
-            Nổi bật
-          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Thứ tự hiển thị" value={form.order} onChange={(v) => field('order', v)} type="number" />
+            <div className="flex items-end gap-4 pb-2">
+              <label className="flex items-center gap-2 text-sm text-[#3d2b25]">
+                <input type="checkbox" checked={form.featured} onChange={(e) => field('featured', e.target.checked)} className="rounded" />
+                Nổi bật
+              </label>
+              <label className="flex items-center gap-2 text-sm text-[#3d2b25]">
+                <input type="checkbox" checked={form.active} onChange={(e) => field('active', e.target.checked)} className="rounded" />
+                Hoạt động
+              </label>
+            </div>
+          </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-full border border-[#ddd0ca] text-sm text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">
               Hủy

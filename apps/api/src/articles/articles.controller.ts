@@ -22,11 +22,23 @@ export class ArticlesController {
 
   // Public — list published articles with optional page + tag filters
   @Get()
-  listPublished(
+  listPublished(@Query('page') page?: string, @Query('tag') tag?: string) {
+    return this.articlesService.listPublished(
+      page ? parseInt(page, 10) : 1,
+      tag,
+    );
+  }
+
+  // Admin — list all articles with optional search + pagination
+  @Get('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPERADMIN')
+  listAll(
     @Query('page') page?: string,
-    @Query('tag') tag?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
   ) {
-    return this.articlesService.listPublished(page ? parseInt(page, 10) : 1, tag);
+    return this.articlesService.listAll(page, limit, search);
   }
 
   // Public — article detail by slug
@@ -39,10 +51,7 @@ export class ArticlesController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPERADMIN')
-  create(
-    @CurrentUser() user: { id: string },
-    @Body() body: unknown,
-  ) {
+  create(@CurrentUser() user: { id: string }, @Body() body: unknown) {
     return this.articlesService.create(user.id, body);
   }
 

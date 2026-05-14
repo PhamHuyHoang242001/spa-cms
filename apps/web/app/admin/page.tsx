@@ -13,7 +13,7 @@ export default function AdminIndexPage() {
 
   useEffect(() => {
     if (isLoading) return;
-    if (!user) return; // layout handles redirect to /login
+    if (!user) return; // layout handles redirect to /admin/login
     if (user.role === 'SUPERADMIN') {
       router.replace('/admin/dashboard');
     } else if (user.role === 'DOCTOR') {

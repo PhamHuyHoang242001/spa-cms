@@ -7,8 +7,12 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Security headers
-  app.use(helmet());
+  // Security headers — allow cross-origin image loading from frontend
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
 
   // CORS — allow web frontend
   const corsOrigin = process.env['CORS_ORIGIN'] ?? 'http://localhost:3000';
@@ -23,4 +27,4 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`API running on http://localhost:${port}`);
 }
-bootstrap();
+void bootstrap();

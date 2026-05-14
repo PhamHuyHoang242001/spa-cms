@@ -1,0 +1,204 @@
+{
+  "nav": {
+    "home": "홈",
+    "services": "서비스",
+    "doctors": "의사",
+    "booking": "예약",
+    "blog": "블로그",
+    "login": "로그인",
+    "register": "회원가입",
+    "logout": "로그아웃",
+    "myBookings": "예약 내역",
+    "greeting": "안녕하세요, {name}",
+    "skipToContent": "본문으로 이동"
+  },
+  "hero": {
+    "title": "한국식 피부 관리 경험",
+    "subtitle": "최첨단 K-뷰티 기술과 프리미엄 스킨케어 테라피",
+    "subline": "피부 분석, 전문 의료진, 서울 기준 회복 프로그램으로 개인화됩니다",
+    "cta": "지금 예약하기",
+    "stat1Value": "96%",
+    "stat1Label": "skin match",
+    "stat2Value": "5단계",
+    "stat2Label": "treatment flow",
+    "stat3Value": "24h",
+    "stat3Label": "booking ready",
+    "liveTitle": "Live Beauty Slot",
+    "liveBody": "피부 상담, 의사 선택, 예약 확정을 한 흐름으로 진행합니다."
+  },
+  "services": {
+    "sectionTitle": "인기 서비스",
+    "pageTitle": "서비스",
+    "pageDescription": "K-Beauty Spa의 한국식 스킨케어 트리트먼트를 살펴보세요",
+    "duration": "{min}분",
+    "price": "{amount}₫",
+    "bookNow": "예약하기",
+    "viewAll": "모든 서비스 보기",
+    "featured": "추천",
+    "homeHeading": "시네마틱한 결과를 위한 시그니처 트리트먼트."
+  },
+  "doctors": {
+    "sectionTitle": "의료진",
+    "pageTitle": "의사",
+    "pageDescription": "K-Beauty Spa의 숙련된 의료진을 소개합니다",
+    "yearsExp": "경력 {years}년",
+    "viewProfile": "프로필 보기",
+    "allDoctors": "전체 의사",
+    "teamLabel": "의료진",
+    "heroTitle": "전문 의사",
+    "heroDescription": "한국식 피부 관리 및 미용 분야에서 풍부한 경험을 가진 전문 의료진을 소개합니다.",
+    "emptyState": "의사 정보를 업데이트 중입니다. 나중에 다시 확인해 주세요.",
+    "about": "소개",
+    "specialties": "전문 분야",
+    "bookWithDoctor": "이 의사와 예약하기",
+    "notFound": "의사를 찾을 수 없습니다",
+    "noInfo": "의사 정보를 업데이트 중입니다.",
+    "loadError": "의사 목록을 불러올 수 없습니다.",
+    "morning": "오전",
+    "afternoon": "오후"
+  },
+  "process": {
+    "title": "예약 절차",
+    "step1": "서비스 선택",
+    "step1Desc": "피부 상태에 맞는 트리트먼트를 선택하세요",
+    "step2": "의사 선택",
+    "step2Desc": "전문 분야에 맞는 의사를 선택하세요",
+    "step3": "시간 선택",
+    "step3Desc": "편리한 시간대를 예약하세요",
+    "step4": "확인",
+    "step4Desc": "정보를 확인하고 예약을 완료하세요",
+    "step5": "체험",
+    "step5Desc": "스파를 방문하여 서비스를 즐기세요",
+    "homeHeading": "런치 시퀀스처럼 설계된 트리트먼트 플로우."
+  },
+  "cta": {
+    "title": "완벽한 피부를 준비하세요",
+    "subtitle": "지금 예약하고 최고의 한국식 스킨케어 서비스를 경험하세요.",
+    "button": "지금 예약하기"
+  },
+  "booking": {
+    "title": "예약하기",
+    "stepService": "서비스 선택",
+    "stepDoctor": "의사 선택",
+    "stepSlot": "시간 선택",
+    "stepConfirm": "확인",
+    "selectService": "원하는 서비스를 선택하세요",
+    "selectDoctor": "의사를 선택하세요",
+    "selectSlot": "날짜와 시간을 선택하세요",
+    "summary": "예약 정보",
+    "serviceLabel": "서비스",
+    "doctorLabel": "의사",
+    "dateLabel": "날짜",
+    "timeLabel": "시간",
+    "noteLabel": "메모 (선택사항)",
+    "notePlaceholder": "피부 상태, 특별 요청사항…",
+    "confirm": "예약 확인",
+    "confirming": "예약 중…",
+    "activeWarning": "대기 중인 예약이 있습니다. 추가 예약은 가능합니다.",
+    "errorDefault": "예약에 실패했습니다. 다시 시도해 주세요.",
+    "successTitle": "예약 완료!",
+    "successMessage": "예약이 생성되었습니다. 곧 확인해 드리겠습니다.",
+    "backHome": "홈으로",
+    "viewBookings": "예약 내역 보기",
+    "noSlots": "이 날짜에 가능한 시간이 없습니다",
+    "back": "뒤로",
+    "next": "다음"
+  },
+  "myBookings": {
+    "account": "계정",
+    "title": "내 예약",
+    "tabActive": "예약 현황",
+    "tabHistory": "이력",
+    "emptyActive": "예약이 없습니다.",
+    "emptyHistory": "예약 이력이 없습니다.",
+    "bookNow": "지금 예약하기",
+    "cancel": "예약 취소",
+    "cancelTitle": "예약을 취소하시겠습니까?",
+    "cancelMessage": "이 예약을 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    "cancelReasonLabel": "취소 사유 (선택사항)",
+    "cancelReasonPlaceholder": "예: 급한 일이 생겨서…",
+    "cancelConfirm": "예약 취소",
+    "cancelling": "취소 중…",
+    "cancelNo": "아니오",
+    "cancelError": "예약 취소에 실패했습니다.",
+    "notePrefix": "메모",
+    "cancelReasonPrefix": "취소 사유",
+    "status": {
+      "PENDING": "대기 중",
+      "CONFIRMED": "확인됨",
+      "COMPLETED": "완료",
+      "EXPIRED": "만료",
+      "CANCELLED": "취소됨",
+      "NO_SHOW": "노쇼"
+    }
+  },
+  "auth": {
+    "loginTitle": "로그인",
+    "registerTitle": "회원가입",
+    "email": "이메일",
+    "password": "비밀번호",
+    "name": "이름",
+    "phone": "전화번호 (선택사항)",
+    "loginButton": "로그인",
+    "registerButton": "회원가입",
+    "noAccount": "계정이 없으신가요?",
+    "hasAccount": "이미 계정이 있으신가요?",
+    "registerLink": "회원가입",
+    "loginLink": "로그인"
+  },
+  "footer": {
+    "description": "한국식 뷰티 경험 — 현대 기술과 전통 테라피의 조화.",
+    "contact": "연락처",
+    "address": "123 레러이 거리, 1군, 호치민시",
+    "phone": "0901 234 567",
+    "hours": "월요일 – 일요일: 9:00 – 18:00",
+    "follow": "팔로우",
+    "copyright": "© {year} K-Beauty Spa. All rights reserved."
+  },
+  "common": {
+    "loading": "로딩 중...",
+    "authenticating": "인증 중…",
+    "error": "오류가 발생했습니다",
+    "retry": "다시 시도",
+    "back": "뒤로",
+    "next": "다음",
+    "submit": "제출",
+    "cancel": "취소",
+    "save": "저장",
+    "readMore": "더 보기"
+  },
+  "blog": {
+    "pageTitle": "블로그",
+    "pageDescription": "한국식 스킨케어 및 뷰티 지식",
+    "readMore": "더 보기",
+    "tags": "주제",
+    "allPosts": "전체",
+    "publishedAt": "게시일"
+  },
+  "metadata": {
+    "home": {
+      "title": "K-Beauty Spa — 한국식 피부 관리 경험",
+      "description": "K-Beauty Spa — 호치민시 최고의 한국식 스킨케어 서비스. 간편한 온라인 예약."
+    },
+    "services": {
+      "title": "서비스 — K-Beauty Spa",
+      "description": "K-Beauty Spa의 한국식 스킨케어 트리트먼트를 살펴보세요"
+    },
+    "doctors": {
+      "title": "의사 — K-Beauty Spa",
+      "description": "K-Beauty Spa의 숙련된 의료진을 소개합니다"
+    },
+    "booking": {
+      "title": "예약 — K-Beauty Spa",
+      "description": "K-Beauty Spa에서 한국식 스킨케어 예약하기"
+    },
+    "blog": {
+      "title": "블로그 — K-Beauty Spa",
+      "description": "한국식 스킨케어 및 뷰티 지식"
+    },
+    "myBookings": {
+      "title": "내 예약 — K-Beauty Spa",
+      "description": "K-Beauty Spa 스킨케어 예약 관리"
+    }
+  }
+}

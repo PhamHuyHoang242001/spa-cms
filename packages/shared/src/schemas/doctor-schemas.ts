@@ -6,6 +6,11 @@ const i18nTextSchema = z.object({
   ko: z.string().min(1, 'Korean text is required'),
 });
 
+const imageUrlSchema = z.union([
+  z.string().url(),
+  z.string().regex(/^\/uploads\/[^/]+$/, 'Invalid upload path'),
+]);
+
 export const createDoctorSchema = z.object({
   // User fields
   email: z.string().email('Invalid email'),
@@ -15,7 +20,7 @@ export const createDoctorSchema = z.object({
   // DoctorProfile fields
   specialty: i18nTextSchema,
   bio: i18nTextSchema,
-  avatarUrl: z.string().url().optional(),
+  avatarUrl: imageUrlSchema.optional().nullable(),
   yearsExp: z.number().int().min(0).default(0),
   order: z.number().int().min(0).default(0),
 });
@@ -25,7 +30,7 @@ export const updateDoctorSchema = z.object({
   phone: z.string().optional(),
   specialty: i18nTextSchema.optional(),
   bio: i18nTextSchema.optional(),
-  avatarUrl: z.string().url().optional().nullable(),
+  avatarUrl: imageUrlSchema.optional().nullable(),
   yearsExp: z.number().int().min(0).optional(),
   order: z.number().int().min(0).optional(),
   active: z.boolean().optional(),

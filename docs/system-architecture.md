@@ -101,21 +101,31 @@
 - `app.controller.ts` — Root routes
 
 ### apps/web (Next.js Frontend)
-**Purpose:** User-facing web interface
+**Purpose:** User-facing web interface with Vietnamese-Korean i18n
 
 **Key Structure:**
 - `app/` — App Router pages
-  - `login/page.tsx` — Login form
-  - `register/page.tsx` — Registration form
-  - Future: dashboard, admin, marketing pages
+  - `[locale]/` — Locale-aware routing wrapper
+    - `login/page.tsx` — Locale-aware login form
+    - `register/page.tsx` — Locale-aware registration form
+    - `services/`, `blog/`, `me/`, etc. — All pages in locale scope
+    - `layout.tsx` — Locale layout with provider context
+  - `admin/` — Admin panel (outside locale wrapper, Vietnamese only)
+  - `i18n.ts` — next-intl routing configuration
+  - `middleware.ts` — Locale detection & routing
+
+- `messages/` — Translation files
+  - `vi.json` — Vietnamese UI strings (150+ keys)
+  - `ko.json` — Korean UI strings
 
 - `lib/` — Shared utilities
   - `api-client.ts` — HTTP client with JWT handling & auto-refresh
   - `auth-context.tsx` — React context for auth state & actions
-  - Future: API routes for BFF proxying (optional)
+  - `locale-content.ts` — i18n JSON field access utility
+  - `locale-switcher.tsx` — Language toggle component
 
-- `components/` — Reusable React components (future)
-- `public/` — Static assets (future)
+- `components/` — Reusable React components
+- `public/` — Static assets
 
 ### packages/shared
 **Purpose:** Shared types, validation schemas, DTOs
@@ -244,6 +254,56 @@ Frontend requests GET /auth/me with Authorization header
          └──► Route handler executes
               │
               └──► Response: {user} without passwordHash
+```
+
+## Internationalization (i18n) Flow
+
+### Locale Routing & Detection
+```
+User visits app:
+    │
+    ├──► Browser URL: /services (default vi) or /ko/services
+         │
+         ├──► Middleware checks: URL path, cookies (NEXT_LOCALE), Accept-Language header
+         │
+         ├──► Resolve locale: vi (default) or ko
+         │
+         ├──► Route to [locale]/ wrapper
+         │
+         └──► Pass locale via next-intl context
+```
+
+### Translation Access
+```
+Component needs a translated string:
+    │
+    ├──► `useTranslations()` hook from next-intl
+    │
+    ├──► Fetch from messages/{locale}.json
+    │
+    └──► Display in target language
+```
+
+### Dynamic Content (i18n JSON Fields)
+```
+API returns: DoctorProfile { specialty: { vi: "...", ko: "..." } }
+    │
+    ├──► Frontend calls `getLocalizedField(specialty, locale)`
+    │
+    └──► Renders appropriate language version
+```
+
+### Locale Persistence
+```
+User switches language vi → ko:
+    │
+    ├──► Click locale-switcher component
+    │
+    ├──► Update NEXT_LOCALE cookie (1-year maxAge)
+    │
+    ├──► Navigate to /ko/current-page
+    │
+    └──► On next visit, cookie restores ko preference
 ```
 
 ## Token Management
@@ -437,7 +497,9 @@ enum SlotStatus {
 - Refresh token and verify new tokens
 - Logout and verify old token revoked
 
-## API Endpoints (Phase 01-02)
+## API Endpoints (Phase 01-02 + i18n)
+
+**Note:** All frontend pages are now locale-aware (vi/ko). Backend APIs remain language-agnostic; they return i18n JSON fields and frontend renders by locale.
 
 ### Authentication (Phase 01)
 | Method | Path | Auth | Body | Response |

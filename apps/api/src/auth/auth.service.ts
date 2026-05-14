@@ -9,10 +9,15 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
-import { registerSchema, loginSchema, refreshTokenSchema, BCRYPT_ROUNDS } from '@spa/shared';
+import {
+  registerSchema,
+  loginSchema,
+  refreshTokenSchema,
+  BCRYPT_ROUNDS,
+} from '@spa/shared';
 import type { RegisterDto } from './dto/register.dto';
 import type { LoginDto } from './dto/login.dto';
-const ACCESS_TOKEN_TTL = '15m';
+const ACCESS_TOKEN_TTL = '1d';
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 @Injectable()
@@ -37,7 +42,12 @@ export class AuthService {
     if (existing) throw new BadRequestException('Registration failed');
 
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-    const user = await this.usersService.create({ email, passwordHash, name, phone });
+    const user = await this.usersService.create({
+      email,
+      passwordHash,
+      name,
+      phone,
+    });
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     return { user: this.sanitize(user), ...tokens };
@@ -139,8 +149,19 @@ export class AuthService {
     return crypto.createHash('sha256').update(value).digest('hex');
   }
 
-  private sanitize(user: { id: string; email: string; name: string; role: string; phone: string | null; locale: string; createdAt: Date; updatedAt: Date; passwordHash: string }) {
-    const { passwordHash: _, ...safe } = user;
+  private sanitize(user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    phone: string | null;
+    locale: string;
+    createdAt: Date;
+    updatedAt: Date;
+    passwordHash: string;
+  }) {
+    const { passwordHash, ...safe } = user;
+    void passwordHash;
     return safe;
   }
 }

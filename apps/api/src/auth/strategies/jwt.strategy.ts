@@ -26,7 +26,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.usersService.findById(payload.sub);
     if (!user) throw new UnauthorizedException('User not found');
     // Strip password hash before attaching to request
-    const { passwordHash: _, ...safeUser } = user;
+    const { passwordHash, ...safeUser } = user;
+    void passwordHash;
     return safeUser;
   }
 }

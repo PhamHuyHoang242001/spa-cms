@@ -3,10 +3,12 @@
 // step-confirm.tsx — Booking step 4: Summary + note + submit
 // Shows selected service/doctor/slot summary, optional note, active booking warning
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { AlertTriangle, Calendar, Clock, User, Sparkles } from 'lucide-react';
 import { apiGet, apiPost } from '@/lib/api-client';
 import type { Booking, CreateBookingInput, Service, Doctor, Slot } from '@/lib/api-types';
+import { localizedText } from '@/lib/locale-content';
 
 interface StepConfirmProps {
   service: Service;
@@ -15,16 +17,21 @@ interface StepConfirmProps {
   onSuccess: (booking: Booking) => void;
 }
 
-function formatDateVi(iso: string): string {
+function formatDateLocale(iso: string, locale: string): string {
   const [year, month, day] = iso.split('-');
+  if (locale === 'ko') return `${year}년 ${month}월 ${day}일`;
   return `${day}/${month}/${year}`;
 }
 
 export function StepConfirm({ service, doctor, slot, onSuccess }: StepConfirmProps) {
+  const t = useTranslations('booking');
+  const locale = useLocale();
+
   const [note, setNote] = useState('');
   const [hasActive, setHasActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const submittedRef = useRef(false);
 
   // Check for existing active bookings to warn user
   useEffect(() => {
@@ -35,6 +42,8 @@ export function StepConfirm({ service, doctor, slot, onSuccess }: StepConfirmPro
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submittedRef.current) return;
+    submittedRef.current = true;
     setSubmitting(true);
     setError('');
 
@@ -49,7 +58,8 @@ export function StepConfirm({ service, doctor, slot, onSuccess }: StepConfirmPro
       const booking = await apiPost<Booking>('/bookings', payload);
       onSuccess(booking);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Đặt lịch thất bại. Vui lòng thử lại.');
+      submittedRef.current = false; // Allow retry on error
+      setError(err instanceof Error ? err.message : t('errorDefault'));
     } finally {
       setSubmitting(false);
     }
@@ -61,23 +71,23 @@ export function StepConfirm({ service, doctor, slot, onSuccess }: StepConfirmPro
       {hasActive && (
         <div className="flex gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
           <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-700">
-            Bạn đang có lịch hẹn đang chờ xử lý. Đặt thêm lịch mới vẫn được cho phép.
-          </p>
+          <p className="text-xs text-amber-700">{t('activeWarning')}</p>
         </div>
       )}
 
       {/* Summary card */}
       <div className="bg-white rounded-2xl border border-[#E5DDD5] p-5 space-y-3.5">
-        <h3 className="text-sm font-semibold text-[#1C1917] mb-4">Thông tin đặt lịch</h3>
+        <h3 className="text-sm font-semibold text-[#1C1917] mb-4">{t('summary')}</h3>
 
         <div className="flex items-start gap-3">
           <Sparkles size={15} className="text-[#D4A574] mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-xs text-[#A8A29E]">Dịch vụ</p>
-            <p className="text-sm font-medium text-[#1C1917]">{service.name.vi}</p>
+            <p className="text-xs text-[#A8A29E]">{t('serviceLabel')}</p>
+            <p className="text-sm font-medium text-[#1C1917]">
+              {localizedText(service.name, locale)}
+            </p>
             <p className="text-xs text-[#A8A29E] mt-0.5">
-              {service.price.toLocaleString('vi-VN')}đ · {service.duration} phút
+              {service.priceVnd.toLocaleString('vi-VN')}đ · {service.durationMin} min
             </p>
           </div>
         </div>
@@ -87,9 +97,11 @@ export function StepConfirm({ service, doctor, slot, onSuccess }: StepConfirmPro
         <div className="flex items-start gap-3">
           <User size={15} className="text-[#D4A574] mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-xs text-[#A8A29E]">Bác sĩ</p>
-            <p className="text-sm font-medium text-[#1C1917]">{doctor.name}</p>
-            <p className="text-xs text-[#A8A29E] mt-0.5">{doctor.specialty?.vi ?? ''}</p>
+            <p className="text-xs text-[#A8A29E]">{t('doctorLabel')}</p>
+            <p className="text-sm font-medium text-[#1C1917]">{doctor.user.name}</p>
+            <p className="text-xs text-[#A8A29E] mt-0.5">
+              {localizedText(doctor.specialty, locale)}
+            </p>
           </div>
         </div>
 
@@ -98,8 +110,10 @@ export function StepConfirm({ service, doctor, slot, onSuccess }: StepConfirmPro
         <div className="flex items-start gap-3">
           <Calendar size={15} className="text-[#D4A574] mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-xs text-[#A8A29E]">Ngày</p>
-            <p className="text-sm font-medium text-[#1C1917]">{formatDateVi(slot.date)}</p>
+            <p className="text-xs text-[#A8A29E]">{t('dateLabel')}</p>
+            <p className="text-sm font-medium text-[#1C1917]">
+              {formatDateLocale(slot.date, locale)}
+            </p>
           </div>
         </div>
 
@@ -108,7 +122,7 @@ export function StepConfirm({ service, doctor, slot, onSuccess }: StepConfirmPro
         <div className="flex items-start gap-3">
           <Clock size={15} className="text-[#D4A574] mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-xs text-[#A8A29E]">Giờ</p>
+            <p className="text-xs text-[#A8A29E]">{t('timeLabel')}</p>
             <p className="text-sm font-medium text-[#1C1917]">
               {slot.startTime} – {slot.endTime}
             </p>
@@ -119,13 +133,13 @@ export function StepConfirm({ service, doctor, slot, onSuccess }: StepConfirmPro
       {/* Note */}
       <div>
         <label className="block text-xs font-medium text-[#6B4C41] mb-1.5 uppercase tracking-wider">
-          Ghi chú (tuỳ chọn)
+          {t('noteLabel')}
         </label>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
-          placeholder="Tình trạng da, yêu cầu đặc biệt…"
+          placeholder={t('notePlaceholder')}
           className="w-full rounded-xl border border-[#DDD0CA] px-4 py-2.5 text-sm text-[#3D2B25] placeholder-[#C4A99F] bg-[#FDFAF8] focus:outline-none focus:ring-2 focus:ring-[#D4A574]/40 focus:border-[#D4A574] resize-none transition"
         />
       </div>
@@ -139,7 +153,7 @@ export function StepConfirm({ service, doctor, slot, onSuccess }: StepConfirmPro
         disabled={submitting}
         className="w-full rounded-full bg-[#D4A574] py-3 text-sm font-semibold text-white hover:bg-[#c4956a] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
-        {submitting ? 'Đang đặt lịch…' : 'Xác nhận đặt lịch'}
+        {submitting ? t('confirming') : t('confirm')}
       </button>
     </form>
   );

@@ -1,50 +1,50 @@
+// cta-band-section.tsx — Final cinematic conversion band
 'use client';
 
-// cta-band-section.tsx — Dark CTA band with booking call-to-action
-
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 
 export function CtaBandSection() {
+  const t = useTranslations('cta');
+  const tNav = useTranslations('nav');
+
   return (
-    <section className="py-20 px-6 bg-[#0F172A]">
-      <div className="max-w-3xl mx-auto text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <p className="text-[#D4A574] text-xs font-semibold tracking-[0.3em] uppercase mb-4">
-            Bắt Đầu Hành Trình
+    <section className="relative overflow-hidden bg-[#050403] px-6 py-24 text-white kb-noise">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_25%,rgba(212,165,116,0.18),transparent_30%),linear-gradient(115deg,rgba(212,165,116,0.16),transparent_34%,rgba(183,110,121,0.10)_70%,transparent)]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#D4A574,transparent)]" />
+
+      <div className="relative mx-auto max-w-4xl text-center">
+        <div className="mx-auto flex flex-col items-center">
+          <p className="inline-flex items-center gap-2 rounded-full border border-[#D4A574]/35 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-[#F4CFA3] backdrop-blur-xl">
+            <Sparkles size={14} />
+            {t('title')}
           </p>
           <h2
-            className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight"
+            className="mt-6 max-w-4xl text-4xl font-black leading-none md:text-7xl"
             style={{ fontFamily: 'var(--font-noto-serif-kr, serif)' }}
           >
-            Sẵn Sàng Trải Nghiệm?
+            {t('title')}
           </h2>
-          <p className="text-[#A8A29E] text-lg mb-10 leading-relaxed">
-            Đặt lịch ngay hôm nay và nhận tư vấn miễn phí từ chuyên gia của chúng tôi.
-            Làn da chuẩn Hàn chỉ cách bạn một bước.
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-[#C9C0B7]">
+            {t('subtitle')}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="mt-9 flex flex-col gap-4 sm:flex-row">
             <Link
               href="/booking"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-[#D4A574] text-white font-semibold text-sm tracking-wide hover:bg-[#c4956a] transition-colors"
+              className="kb-shimmer kb-magnetic inline-flex items-center justify-center gap-3 rounded-full bg-[#D4A574] px-8 py-4 text-sm font-black uppercase tracking-[0.16em] text-[#120E0B] shadow-[0_18px_70px_rgba(212,165,116,0.42)] transition-transform hover:scale-[1.04]"
             >
-              Đặt Lịch Ngay <ArrowRight size={16} />
+              {t('button')} <ArrowRight size={17} />
             </Link>
             <Link
               href="/services"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full border border-white/20 text-white font-semibold text-sm tracking-wide hover:border-[#D4A574] hover:text-[#D4A574] transition-colors"
+              className="inline-flex items-center justify-center gap-3 rounded-full border border-white/20 bg-white/10 px-8 py-4 text-sm font-bold uppercase tracking-[0.16em] text-white backdrop-blur-xl transition-colors hover:border-[#D4A574] hover:text-[#D4A574]"
             >
-              Xem Dịch Vụ
+              {tNav('services')}
             </Link>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
@@ -22,6 +23,18 @@ export class DoctorsController {
   @Get()
   listActive() {
     return this.doctorsService.listActive();
+  }
+
+  // Admin — list all doctors with optional search + pagination
+  @Get('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPERADMIN')
+  listAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.doctorsService.listAll(page, limit, search);
   }
 
   // Public — doctor detail

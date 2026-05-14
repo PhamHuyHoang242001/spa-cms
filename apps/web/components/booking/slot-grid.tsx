@@ -4,6 +4,7 @@
 // Fetches GET /slots?doctorId=X&date=Y, renders morning/afternoon groups
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiGet } from '@/lib/api-client';
 import type { Slot } from '@/lib/api-types';
 
@@ -20,19 +21,23 @@ function isMorning(time: string): boolean {
 }
 
 export function SlotGrid({ doctorId, date, selectedSlotId, onSelect }: SlotGridProps) {
+  const t = useTranslations('doctors');
+  const tb = useTranslations('booking');
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (!doctorId || !date) return;
-    setLoading(true);
-    setError('');
-    apiGet<Slot[]>(`/slots?doctorId=${doctorId}&date=${date}`)
-      .then(setSlots)
-      .catch(() => setError('Không thể tải khung giờ.'))
-      .finally(() => setLoading(false));
-  }, [doctorId, date]);
+    void Promise.resolve().then(() => {
+      setLoading(true);
+      setError('');
+      apiGet<Slot[]>(`/slots?doctorId=${doctorId}&date=${date}`)
+        .then(setSlots)
+        .catch(() => setError(t('loadError')))
+        .finally(() => setLoading(false));
+    });
+  }, [doctorId, date, t]);
 
   if (loading) {
     return (
@@ -51,7 +56,7 @@ export function SlotGrid({ doctorId, date, selectedSlotId, onSelect }: SlotGridP
   if (slots.length === 0) {
     return (
       <p className="text-sm text-[#A8A29E] mt-3 text-center py-4">
-        Không có khung giờ nào trong ngày này.
+        {tb('noSlots')}
       </p>
     );
   }
@@ -93,8 +98,8 @@ export function SlotGrid({ doctorId, date, selectedSlotId, onSelect }: SlotGridP
 
   return (
     <div>
-      {renderGroup('Buổi sáng', morning)}
-      {renderGroup('Buổi chiều', afternoon)}
+      {renderGroup(t('morning'), morning)}
+      {renderGroup(t('afternoon'), afternoon)}
     </div>
   );
 }

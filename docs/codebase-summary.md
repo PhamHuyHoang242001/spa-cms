@@ -160,17 +160,32 @@ apps/api/
 ```
 apps/web/
 ├── app/
-│   ├── login/
-│   │   └── page.tsx                (Login form page)
-│   ├── register/
-│   │   └── page.tsx                (Register form page)
+│   ├── [locale]/                   (Locale-aware routing wrapper)
+│   │   ├── login/
+│   │   │   └── page.tsx            (Locale-aware login page)
+│   │   ├── register/
+│   │   │   └── page.tsx            (Locale-aware register page)
+│   │   ├── services/
+│   │   ├── blog/
+│   │   ├── me/
+│   │   ├── admin/
+│   │   ├── layout.tsx              (Locale layout, injects locale context)
+│   │   └── page.tsx                (Locale-aware home)
+│   ├── admin/                      (Admin pages - outside [locale] wrapper)
+│   ├── i18n.ts                     (i18n config & routing rules)
 │   ├── layout.tsx                  (Root layout)
-│   └── page.tsx                    (Home/index)
+│   └── request.ts                  (Request context for locale handling)
+├── messages/                       (Translation files)
+│   ├── vi.json                     (Vietnamese strings)
+│   └── ko.json                     (Korean strings)
 ├── lib/
 │   ├── api-client.ts               (Fetch wrapper with JWT & auto-refresh)
-│   └── auth-context.tsx            (React Context for auth state)
-├── components/                     (Reusable components - future)
-├── public/                         (Static assets - future)
+│   ├── auth-context.tsx            (React Context for auth state)
+│   ├── locale-content.ts           (Utility for i18n JSON field access)
+│   └── locale-switcher.tsx         (Language toggle component)
+├── middleware.ts                   (i18n proxy - locale detection)
+├── components/                     (Reusable components)
+├── public/                         (Static assets)
 └── [config files]                  (next.config.ts, tailwind.config.ts, etc.)
 ```
 
@@ -202,6 +217,39 @@ apps/web/
 - Zod validation via shared schema
 - Password ≥8 chars, email valid format
 
+### Frontend i18n Setup (next-intl v4)
+
+**Configuration Files:**
+- `i18n.ts` — next-intl routing config, locale routing strategy (`localePrefix: 'as-needed'`)
+- `middleware.ts` — Locale detection from URL/headers/cookies
+- `request.ts` — Request context for accessing user locale
+
+**Locale Routing:**
+- Default locale: Vietnamese (vi) → `/services`, `/blog`, etc.
+- Korean (ko) → `/ko/services`, `/ko/blog`, etc.
+- Strategy: `as-needed` (no prefix for default, prefix for others)
+- Admin pages outside locale wrapper → `/admin/*` (Vietnamese only)
+
+**Translation Files** (`messages/`):
+- `vi.json` → 150+ Vietnamese UI strings (navigation, forms, buttons, errors)
+- `ko.json` → 150+ Korean UI strings (same keys as vi.json)
+
+**Locale Persistence:**
+- Cookie: `NEXT_LOCALE` (1-year maxAge)
+- Stored on locale switch via locale-switcher component
+- Retrieved on page load and set in routing context
+
+**Dynamic Content (i18n JSON Fields):**
+- DoctorProfile: `specialty` & `bio` → `{ vi: string, ko: string }`
+- Service: `name` & `description` → `{ vi: string, ko: string }`
+- Frontend access via `locale-content.ts` utility: `getLocalizedField(field, locale)`
+
+**Locale Switcher Component** (`lib/locale-switcher.tsx`):
+- Dropdown/button to toggle vi ↔ ko
+- Updates `NEXT_LOCALE` cookie
+- Navigates to localized URL path
+- Persistent across login/logout
+
 ### Dependencies (Key)
 
 ```json
@@ -209,6 +257,7 @@ apps/web/
   "next": "16.2.4",
   "react": "19.2.4",
   "react-dom": "19.2.4",
+  "next-intl": "4.11.0",
   "@spa/shared": "workspace:*",
   "tailwindcss": "4"
 }
@@ -586,15 +635,49 @@ pnpm --filter web typecheck        # Type-check frontend
 - Slot generation: 30-min blocks, 09:00-12:00 + 14:00-18:00
 - Doctor ownership validation: DOCTOR role can only modify own profile/slots
 
-## Next Phase Preview (Phase 03)
+## Phase i18n Summary (next-intl v4)
 
-**Booking Logic Implementation:**
-- Booking model (User + Service + Doctor + TimeSlot)
-- Booking creation with slot availability checking
-- Booking cancellation and rescheduling
-- Availability constraints and conflict detection
+**Implemented:**
+- ✓ next-intl v4.11.0 installed, configured with locale routing
+- ✓ `localePrefix: 'as-needed'` strategy (vi default, ko prefixed)
+- ✓ Locale routing: all pages moved to `app/[locale]/` wrapper
+- ✓ Admin pages outside locale wrapper (Vietnamese only)
+- ✓ Locale detection via proxy (middleware.ts equivalent for Next.js 16)
+- ✓ Locale persistence via `NEXT_LOCALE` cookie (1-year maxAge)
+- ✓ Translation files: messages/vi.json, messages/ko.json (~150+ keys)
+- ✓ All UI strings translated (navigation, forms, errors, buttons)
+- ✓ Dynamic content rendering: Doctor specialty/bio, Service name/description
+- ✓ Locale switcher component for vi ↔ ko toggle
+- ✓ SEO metadata (meta tags) per locale
+- ✓ Production build: 28/28 pages (all static-optimized)
+- ✓ TypeScript strict mode: all types correct
 
-**Estimated Complexity:** +1 new model, +1 controller, +3 services
+**Architecture Decisions:**
+- Locale routing via `[locale]` directory (Next.js App Router pattern)
+- Cookie-based persistence (survives browser close, follows user login)
+- DB JSON fields (`{ vi, ko }`) for content, frontend renders by locale
+- Static translation files (next-intl messages) for UI strings
+- Admin outside locale wrapper to keep Vietnamese-only interface
+
+## Completed Phases Beyond Core
+
+**Phase 03 — Booking Logic (Completed):**
+- ✓ Booking model (User + Service + Doctor + TimeSlot)
+- ✓ Booking creation with slot availability checking
+- ✓ Booking cancellation and rescheduling
+- ✓ Availability constraints and conflict detection
+- ✓ Booking status tracking (CONFIRMED, CANCELLED, COMPLETED, EXPIRED, NO_SHOW)
+
+**Phase 04-09 — Additional Phases (Completed):**
+- ✓ Landing & marketing pages (hero, services grid, doctors showcase)
+- ✓ Blog system (articles, slug routing, featured posts)
+- ✓ Customer dashboard (bookings, profile management)
+- ✓ Admin panel (CRUD for services, doctors, bookings, articles)
+- ✓ Polish & optimization (TypeScript strict, performance, mobile)
+- ✓ Debug & audit (all endpoints fixed, auth refresh, timezone handling)
+- ✓ i18n setup (Vietnamese-Korean language switching)
+
+**Current Status:** MVP complete with full i18n support, all phases debugged and tested
 
 ## Deployment Readiness Checklist
 

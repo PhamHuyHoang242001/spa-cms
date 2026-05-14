@@ -25,7 +25,10 @@ export class BookingsCron {
         data: { status: 'EXPIRED' },
       });
       if (updated.count > 0) {
-        await this.prisma.timeSlot.update({ where: { id: b.slotId }, data: { status: 'AVAILABLE' } });
+        await this.prisma.timeSlot.update({
+          where: { id: b.slotId },
+          data: { status: 'AVAILABLE' },
+        });
       }
     }
 

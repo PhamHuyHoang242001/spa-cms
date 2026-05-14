@@ -11,19 +11,24 @@ export interface Service {
   slug: string;
   name: LocalizedString;
   description: LocalizedString;
-  price: number;
-  duration: number; // minutes
+  priceVnd: number;
+  durationMin: number;
+  coverUrl?: string | null;
+  gallery?: string[];
+  featured?: boolean;
+  active?: boolean;
   category?: string;
-  imageUrl?: string;
 }
 
 export interface Doctor {
   id: string;
-  name: string;
+  user: { id: string; name: string; email: string };
   specialty: LocalizedString;
   bio: LocalizedString;
   yearsExp: number;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
+  active?: boolean;
+  order?: number;
 }
 
 export type SlotStatus = 'AVAILABLE' | 'BOOKED' | 'BLOCKED';
@@ -41,7 +46,9 @@ export type BookingStatus =
   | 'PENDING'
   | 'CONFIRMED'
   | 'COMPLETED'
-  | 'CANCELLED';
+  | 'EXPIRED'
+  | 'CANCELLED'
+  | 'NO_SHOW';
 
 export interface Booking {
   id: string;
@@ -52,13 +59,14 @@ export interface Booking {
   service: {
     id: string;
     name: LocalizedString;
-    duration: number;
-    price: number;
+    durationMin: number;
+    priceVnd: number;
   };
   doctor: {
     id: string;
-    name: string;
-    specialty: LocalizedString;
+    user: { id: string; name: string };
+    specialty?: LocalizedString;
+    bio?: LocalizedString;
   };
   slot: {
     id: string;
@@ -75,13 +83,22 @@ export interface CreateBookingInput {
   note?: string;
 }
 
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
 // ---------- Admin extended types ----------
 
 export interface ServiceAdmin extends Service {
-  priceVnd?: number;
-  durationMin?: number;
-  featured?: boolean;
-  active?: boolean;
+  order?: number;
 }
 
 export interface DoctorAdmin extends Doctor {
@@ -96,10 +113,27 @@ export interface Article {
   slug: string;
   title: LocalizedString;
   excerpt: LocalizedString;
-  content: string;
+  content: LocalizedString | string | Record<string, unknown>;
+  coverUrl?: string | null;
   tags: string[];
-  published: boolean;
+  featured?: boolean;
+  publishedAt?: string | null;
   author?: { id: string; name: string };
   createdAt: string;
   updatedAt: string;
+}
+
+export interface BookingAdmin extends Booking {
+  user: { id: string; name: string; email: string };
+}
+
+export interface UserAdmin {
+  id: string;
+  email: string;
+  name: string;
+  phone: string | null;
+  role: 'CUSTOMER' | 'DOCTOR' | 'SUPERADMIN';
+  locale: string;
+  createdAt: string;
+  updatedAt?: string;
 }
