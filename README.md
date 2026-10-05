@@ -29,9 +29,9 @@ pnpm dev
 
 | App | URL |
 |-----|-----|
-| Web (Next.js) | http://localhost:3000 |
-| API (NestJS) | http://localhost:3001 |
-| Postgres | localhost:5432 |
+| Web (Next.js) | http://localhost:3100 |
+| API (NestJS) | http://localhost:3101 |
+| Postgres | localhost:5433 (container 5432) |
 
 ## Useful Commands
 

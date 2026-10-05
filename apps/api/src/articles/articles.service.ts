@@ -11,20 +11,10 @@ import {
   buildPaginatedResult,
   parsePagination,
 } from '../common/utils/pagination-utils';
+import { uniqueSlug } from '../common/utils/slug-utils';
+import { parseListQuery } from '../common/utils/list-query';
 
 const PAGE_SIZE = 10;
-
-// Converts Vietnamese title string to URL-safe slug
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-');
-}
 
 @Injectable()
 export class ArticlesService {
@@ -67,26 +57,31 @@ export class ArticlesService {
 
   // ── Admin list all articles, including drafts/unpublished ───────────────────
 
-  async listAll(page?: string, limit?: string, search?: string) {
-    const pagination = parsePagination(page, limit);
-    const q = search?.trim();
-    const where: Prisma.ArticleWhereInput = q
-      ? {
-          OR: [
-            { slug: { contains: q, mode: 'insensitive' } },
-            { title: { path: ['vi'], string_contains: q } },
-            { title: { path: ['ko'], string_contains: q } },
-            { excerpt: { path: ['vi'], string_contains: q } },
-            { excerpt: { path: ['ko'], string_contains: q } },
-          ],
-        }
-      : {};
+  async listAll(query: Record<string, string | undefined> = {}) {
+    const pagination = parsePagination(query.page, query.limit);
+    const { search, sort, dir, filter } = parseListQuery(query, ['createdAt', 'updatedAt', 'publishedAt'], 'createdAt');
+    const q = search;
+    const where: Prisma.ArticleWhereInput = {
+      ...(filter.published === 'true' ? { publishedAt: { not: null } } : {}),
+      ...(filter.published === 'false' ? { publishedAt: null } : {}),
+      ...(q
+        ? {
+            OR: [
+              { slug: { contains: q, mode: 'insensitive' } },
+              { title: { path: ['vi'], string_contains: q } },
+              { title: { path: ['ko'], string_contains: q } },
+              { excerpt: { path: ['vi'], string_contains: q } },
+              { excerpt: { path: ['ko'], string_contains: q } },
+            ],
+          }
+        : {}),
+    };
     const include = { author: { select: { id: true, name: true } } };
 
     if (!pagination) {
       return this.prisma.article.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [sort]: dir },
         include,
       });
     }
@@ -94,7 +89,7 @@ export class ArticlesService {
     const [data, total] = await Promise.all([
       this.prisma.article.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [sort]: dir },
         include,
         skip: pagination.skip,
         take: pagination.take,
@@ -126,13 +121,9 @@ export class ArticlesService {
     }
 
     const titleVi = (parsed.data.title as { vi: string }).vi;
-    let slug = slugify(titleVi);
-
-    // Ensure slug uniqueness by appending numeric suffix if collision
-    const conflict = await this.prisma.article.findUnique({ where: { slug } });
-    if (conflict) {
-      slug = `${slug}-${Date.now()}`;
-    }
+    const slug = await uniqueSlug(titleVi, async (s) =>
+      Boolean(await this.prisma.article.findUnique({ where: { slug: s } })),
+    );
 
     // Cast typed Zod output to Prisma.InputJsonValue for Json columns
     return this.prisma.article.create({

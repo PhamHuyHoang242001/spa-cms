@@ -1,12 +1,14 @@
 'use client';
 
-// admin-table.tsx — Generic reusable table for admin CRUD pages
-// Renders column headers + rows from typed data arrays
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { isIconActive, type SortDir } from '@/lib/admin-sort';
 
-interface Column<T> {
+export interface Column<T> {
   key: string;
   label: string;
   render?: (row: T) => React.ReactNode;
+  /** Prisma/API sort field. Omit if column is not sortable. */
+  sortKey?: string;
 }
 
 interface AdminTableProps<T extends { id: string }> {
@@ -15,6 +17,10 @@ interface AdminTableProps<T extends { id: string }> {
   actions?: (row: T) => React.ReactNode;
   loading?: boolean;
   emptyText?: string;
+  sort?: string;
+  dir?: SortDir;
+  sortPinned?: boolean;
+  onSort?: (columnKey: string, iconDir: SortDir) => void;
 }
 
 export function AdminTable<T extends { id: string }>({
@@ -23,6 +29,10 @@ export function AdminTable<T extends { id: string }>({
   actions,
   loading,
   emptyText = 'Không có dữ liệu',
+  sort = 'createdAt',
+  dir = 'desc',
+  sortPinned = false,
+  onSort,
 }: AdminTableProps<T>) {
   if (loading) {
     return (
@@ -37,11 +47,32 @@ export function AdminTable<T extends { id: string }>({
       <table className="w-full text-sm text-left">
         <thead className="bg-[#f5ede8] text-[#6b4c41] uppercase text-xs tracking-wider">
           <tr>
-            {columns.map((col) => (
-              <th key={col.key} className="px-4 py-3 font-medium whitespace-nowrap">
-                {col.label}
-              </th>
-            ))}
+            {columns.map((col) => {
+              const state = { sort, dir, pinned: sortPinned };
+              return (
+                <th key={col.key} className="px-4 py-3 font-medium whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1">
+                    {col.label}
+                    {col.sortKey && onSort ? (
+                      <span className="inline-flex flex-col -space-y-1">
+                        <ChevronUp
+                          size={12}
+                          aria-label={`Sắp xếp ${col.label} tăng dần`}
+                          className={`cursor-pointer ${isIconActive(state, col.sortKey, 'asc') ? 'text-[#B76E79]' : 'text-[#c4b4ad] hover:text-[#8a6a62]'}`}
+                          onClick={() => onSort(col.sortKey as string, 'asc')}
+                        />
+                        <ChevronDown
+                          size={12}
+                          aria-label={`Sắp xếp ${col.label} giảm dần`}
+                          className={`cursor-pointer ${isIconActive(state, col.sortKey, 'desc') ? 'text-[#B76E79]' : 'text-[#c4b4ad] hover:text-[#8a6a62]'}`}
+                          onClick={() => onSort(col.sortKey as string, 'desc')}
+                        />
+                      </span>
+                    ) : null}
+                  </span>
+                </th>
+              );
+            })}
             {actions && (
               <th className="px-4 py-3 font-medium text-right">Hành động</th>
             )}

@@ -143,8 +143,10 @@ export function AdminSidebar() {
       {/* Mobile toggle */}
       <div className="md:hidden fixed top-3 left-3 z-50">
         <button
+          type="button"
           onClick={() => setOpen((v) => !v)}
-          className="p-2 rounded-lg bg-[#3d2b25] text-white shadow"
+          className="p-2 rounded-lg bg-[#3d2b25] text-white shadow hover:bg-[#2a1d19]"
+          aria-label="Toggle admin menu"
         >
           {open ? <X size={20} /> : <Menu size={20} />}
         </button>

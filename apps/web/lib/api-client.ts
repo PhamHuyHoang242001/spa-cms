@@ -2,7 +2,7 @@
 // Access token stored in module memory; refresh token persisted to localStorage
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3101';
 
 // ---------- global auth-failure event ----------
 // Dispatched when a request fails with 401 and token refresh also fails.

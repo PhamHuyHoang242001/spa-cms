@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiGet } from '@/lib/api-client';
 import type { PaginatedResponse, PaginationMeta } from '@/lib/api-types';
+import { clickColumnIcon, DEFAULT_ADMIN_DIR, DEFAULT_ADMIN_SORT, type SortDir } from '@/lib/admin-sort';
 
 interface UseAdminListOptions {
   url: string;
@@ -22,6 +23,9 @@ export function useAdminList<T>({
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState(DEFAULT_ADMIN_SORT);
+  const [dir, setDir] = useState<SortDir>(DEFAULT_ADMIN_DIR);
+  const [sortPinned, setSortPinned] = useState(false);
 
   const extraParamsKey = useMemo(() => JSON.stringify(extraParams ?? {}), [extraParams]);
 
@@ -40,6 +44,8 @@ export function useAdminList<T>({
       const params = new URLSearchParams();
       params.set('page', String(page));
       params.set('limit', String(defaultLimit));
+      params.set('sort', sort);
+      params.set('dir', dir);
       if (debouncedSearch) params.set('search', debouncedSearch);
 
       const parsedExtraParams = JSON.parse(extraParamsKey) as Record<string, string>;
@@ -57,11 +63,22 @@ export function useAdminList<T>({
     } finally {
       setLoading(false);
     }
-  }, [url, page, defaultLimit, debouncedSearch, extraParamsKey]);
+  }, [url, page, defaultLimit, debouncedSearch, extraParamsKey, sort, dir]);
 
   useEffect(() => {
     void Promise.resolve().then(reload);
   }, [reload]);
 
-  return { data, meta, loading, error, search, setSearch, page, setPage, reload };
+  const applyColumnIcon = useCallback((columnKey: string, iconDir: SortDir) => {
+    const next = clickColumnIcon({ sort, dir, pinned: sortPinned }, columnKey, iconDir);
+    setPage(1);
+    setSort(next.sort);
+    setDir(next.dir);
+    setSortPinned(next.pinned);
+  }, [sort, dir, sortPinned]);
+
+  return {
+    data, meta, loading, error, search, setSearch, page, setPage, reload,
+    sort, dir, sortPinned, applyColumnIcon,
+  };
 }

@@ -1,11 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { CalendarCheck, Check, XCircle } from 'lucide-react';
+import { CalendarCheck } from 'lucide-react';
 import { apiGet, apiPatch } from '@/lib/api-client';
 import { AdminFormModal } from '@/components/admin/admin-form-modal';
 import { AdminPagination } from '@/components/admin/admin-pagination';
 import { AdminTable } from '@/components/admin/admin-table';
+import { fmtAdminDate } from '@/components/admin/admin-list-bar';
 import type { BookingAdmin, BookingStatus, Doctor, PaginatedResponse, PaginationMeta } from '@/lib/api-types';
 
 const STATUS_VALUES: BookingStatus[] = [
@@ -125,6 +126,8 @@ export default function AdminBookingsPage() {
         </span>
       ),
     },
+    { key: 'createdAt', label: 'Tạo lúc', render: (b: BookingAdmin) => <span className="whitespace-nowrap">{fmtAdminDate(b.createdAt)}</span> },
+    { key: 'updatedAt', label: 'Sửa lúc', render: (b: BookingAdmin) => <span className="whitespace-nowrap">{fmtAdminDate(b.updatedAt)}</span> },
   ];
 
   return (
@@ -137,25 +140,37 @@ export default function AdminBookingsPage() {
         <CalendarCheck className="text-[#B76E79]" size={24} />
       </div>
 
-      <div className="grid gap-3 rounded-xl border border-[#ede4de] bg-white p-4 md:grid-cols-4">
-        <Select value={status} onChange={(v) => resetPageOnFilter(() => setStatus(v))}>
-          <option value="">Tất cả trạng thái</option>
-          {STATUS_VALUES.map((value) => (
-            <option key={value} value={value}>
-              {STATUS_LABELS[value]}
-            </option>
-          ))}
-        </Select>
-        <Select value={doctorId} onChange={(v) => resetPageOnFilter(() => setDoctorId(v))}>
-          <option value="">Tất cả bác sĩ</option>
-          {doctors.map((doctor) => (
-            <option key={doctor.id} value={doctor.id}>
-              {doctor.user.name}
-            </option>
-          ))}
-        </Select>
-        <input type="date" value={from} onChange={(e) => resetPageOnFilter(() => setFrom(e.target.value))} className={fieldClass} />
-        <input type="date" value={to} onChange={(e) => resetPageOnFilter(() => setTo(e.target.value))} className={fieldClass} />
+      <div className="grid gap-3 rounded-xl border border-[#ede4de] bg-[#fdfaf8] p-4 md:grid-cols-4">
+        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+          Lọc trạng thái
+          <Select value={status} onChange={(v) => resetPageOnFilter(() => setStatus(v))}>
+            <option value="">Tất cả trạng thái</option>
+            {STATUS_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {STATUS_LABELS[value]}
+              </option>
+            ))}
+          </Select>
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+          Lọc bác sĩ
+          <Select value={doctorId} onChange={(v) => resetPageOnFilter(() => setDoctorId(v))}>
+            <option value="">Tất cả bác sĩ</option>
+            {doctors.map((doctor) => (
+              <option key={doctor.id} value={doctor.id}>
+                {doctor.user.name}
+              </option>
+            ))}
+          </Select>
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+          Từ ngày
+          <input type="date" value={from} onChange={(e) => resetPageOnFilter(() => setFrom(e.target.value))} className={fieldClass} />
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+          Đến ngày
+          <input type="date" value={to} onChange={(e) => resetPageOnFilter(() => setTo(e.target.value))} className={fieldClass} />
+        </label>
       </div>
 
       {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -167,13 +182,13 @@ export default function AdminBookingsPage() {
         actions={(booking) => (
           <>
             {booking.status === 'PENDING' && (
-              <button onClick={() => confirmBooking(booking.id)} className="rounded-lg p-1.5 text-green-600 transition-colors hover:bg-green-50" title="Xác nhận">
-                <Check size={15} />
+              <button type="button" onClick={() => confirmBooking(booking.id)} className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white">
+                Xác nhận
               </button>
             )}
             {['PENDING', 'CONFIRMED'].includes(booking.status) && (
-              <button onClick={() => setCancelId(booking.id)} className="rounded-lg p-1.5 text-red-500 transition-colors hover:bg-red-50" title="Hủy lịch">
-                <XCircle size={15} />
+              <button type="button" onClick={() => setCancelId(booking.id)} className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                Hủy lịch
               </button>
             )}
           </>

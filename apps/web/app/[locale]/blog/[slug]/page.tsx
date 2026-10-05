@@ -8,7 +8,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/routing';
 import { localizedText } from '@/lib/locale-content';
-import { resolveMediaUrl } from '@/lib/media-url';
+import { resolveMediaUrl, rewriteMediaUrlsInHtml } from '@/lib/media-url';
 import { generateHTML } from '@tiptap/html';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -32,7 +32,7 @@ interface Article {
   author: { name: string };
 }
 
-const API_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001';
+const API_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3101';
 
 async function fetchArticle(slug: string): Promise<Article | null> {
   try {
@@ -149,12 +149,12 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 }
 
 function renderArticleContent(content: Article['content'], locale: string) {
-  if (typeof content === 'string') return ensureHtml(content);
+  if (typeof content === 'string') return rewriteMediaUrlsInHtml(ensureHtml(content));
 
   const localized = content[locale as 'vi' | 'ko'] ?? content.vi;
-  if (typeof localized === 'string') return ensureHtml(localized);
+  if (typeof localized === 'string') return rewriteMediaUrlsInHtml(ensureHtml(localized));
 
-  return generateHTML(localized, [StarterKit, Image, TiptapLink]);
+  return rewriteMediaUrlsInHtml(generateHTML(localized, [StarterKit, Image, TiptapLink]));
 }
 
 function ensureHtml(value: string) {

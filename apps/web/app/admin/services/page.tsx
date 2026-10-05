@@ -9,9 +9,10 @@ import { AdminTable } from '@/components/admin/admin-table';
 import { AdminFormModal } from '@/components/admin/admin-form-modal';
 import { AdminGalleryManager } from '@/components/admin/admin-gallery-manager';
 import { AdminImageUpload } from '@/components/admin/admin-image-upload';
-import { AdminSearchBar } from '@/components/admin/admin-search-bar';
+import { AdminListBar, fmtAdminDate } from '@/components/admin/admin-list-bar';
 import { AdminPagination } from '@/components/admin/admin-pagination';
 import { useAdminList } from '@/hooks/use-admin-list';
+import { AdminBoolChoice } from '@/components/admin/admin-choice';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 
 interface ServiceRow {
@@ -26,6 +27,8 @@ interface ServiceRow {
   order?: number;
   featured: boolean;
   active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 const EMPTY_FORM = {
@@ -52,6 +55,8 @@ export default function ServicesPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [active, setActive] = useState('');
+  const [featured, setFeatured] = useState('');
   const {
     data: rows,
     meta,
@@ -62,7 +67,11 @@ export default function ServicesPage() {
     page,
     setPage,
     reload,
-  } = useAdminList<ServiceRow>({ url: '/services/admin' });
+    sort,
+    dir,
+    sortPinned,
+    applyColumnIcon,
+  } = useAdminList<ServiceRow>({ url: '/services/admin', extraParams: { active, featured } });
 
   function openCreate() {
     setEditId(null);
@@ -94,14 +103,12 @@ export default function ServicesPage() {
     setSaving(true);
     try {
       const payload = {
-        slug: form.slug,
-        name: { vi: form.nameVi, ko: form.nameKo },
+        name: { vi: form.nameVi, ko: form.nameKo || form.nameVi },
         description: { vi: form.descVi, ko: form.descKo },
         priceVnd: Number(form.priceVnd),
         durationMin: Number(form.durationMin),
         coverUrl: form.coverUrl || null,
         gallery: form.gallery,
-        order: Number(form.order),
         featured: form.featured,
         active: form.active,
       };
@@ -136,8 +143,9 @@ export default function ServicesPage() {
 
   const columns = [
     { key: 'name', label: 'Tên dịch vụ', render: (r: ServiceRow) => r.name.vi },
-    { key: 'priceVnd', label: 'Giá (VND)', render: (r: ServiceRow) => r.priceVnd?.toLocaleString('vi-VN') ?? '—' },
-    { key: 'durationMin', label: 'Thời gian (phút)', render: (r: ServiceRow) => `${r.durationMin} phút` },
+    { key: 'priceVnd', label: 'Giá (VND)', sortKey: 'priceVnd', render: (r: ServiceRow) => r.priceVnd?.toLocaleString('vi-VN') ?? '—' },
+    { key: 'durationMin', label: 'Thời gian (phút)', sortKey: 'durationMin', render: (r: ServiceRow) => `${r.durationMin} phút` },
+    { key: 'order', label: 'Thứ tự', sortKey: 'order', render: (r: ServiceRow) => r.order ?? '—' },
     {
       key: 'featured', label: 'Nổi bật', render: (r: ServiceRow) => (
         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.featured ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -152,6 +160,8 @@ export default function ServicesPage() {
         </span>
       ),
     },
+    { key: 'createdAt', label: 'Tạo lúc', sortKey: 'createdAt', render: (r: ServiceRow) => <span className="whitespace-nowrap">{fmtAdminDate(r.createdAt)}</span> },
+    { key: 'updatedAt', label: 'Sửa lúc', sortKey: 'updatedAt', render: (r: ServiceRow) => <span className="whitespace-nowrap">{fmtAdminDate(r.updatedAt)}</span> },
   ];
 
   return (
@@ -166,10 +176,14 @@ export default function ServicesPage() {
         </button>
       </div>
 
-      <AdminSearchBar
-        value={search}
-        onChange={setSearch}
-        placeholder="Tìm dịch vụ theo tên hoặc slug..."
+      <AdminListBar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Tìm dịch vụ theo tên..."
+        filters={[
+          { key: 'active', label: 'Trạng thái', value: active, onChange: (v) => { setPage(1); setActive(v); }, options: [{ value: 'true', label: 'Hoạt động' }, { value: 'false', label: 'Tắt' }] },
+          { key: 'featured', label: 'Nổi bật', value: featured, onChange: (v) => { setPage(1); setFeatured(v); }, options: [{ value: 'true', label: 'Có' }, { value: 'false', label: 'Không' }] },
+        ]}
       />
 
       {(error || listError) && (
@@ -180,14 +194,14 @@ export default function ServicesPage() {
         columns={columns}
         data={rows}
         loading={loading}
+        sort={sort}
+        dir={dir}
+        sortPinned={sortPinned}
+        onSort={applyColumnIcon}
         actions={(row) => (
           <>
-            <button onClick={() => openEdit(row)} className="p-1.5 rounded-lg text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">
-              <Pencil size={15} />
-            </button>
-            <button onClick={() => setDeleteId(row.id)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors">
-              <Trash2 size={15} />
-            </button>
+            <button type="button" onClick={() => openEdit(row)} className="px-3 py-1 text-xs border border-[#ddd0ca]"><Pencil size={14} /> Sửa</button>
+            <button type="button" onClick={() => setDeleteId(row.id)} className="px-3 py-1 text-xs bg-red-50 text-red-600"><Trash2 size={14} /> Xóa</button>
           </>
         )}
       />
@@ -227,24 +241,14 @@ export default function ServicesPage() {
             <Field label="Mô tả (VI)" value={form.descVi} onChange={(v) => field('descVi', v)} multiline />
             <Field label="Mô tả (KO)" value={form.descKo} onChange={(v) => field('descKo', v)} multiline />
           </div>
-          <Field label="Slug" value={form.slug} onChange={(v) => field('slug', v)} required />
           <div className="grid grid-cols-2 gap-3">
             <Field label="Giá (VND)" value={form.priceVnd} onChange={(v) => field('priceVnd', v)} type="number" required />
             <Field label="Thời gian (phút)" value={form.durationMin} onChange={(v) => field('durationMin', v)} type="number" required />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Thứ tự hiển thị" value={form.order} onChange={(v) => field('order', v)} type="number" />
-            <div className="flex items-end gap-4 pb-2">
-              <label className="flex items-center gap-2 text-sm text-[#3d2b25]">
-                <input type="checkbox" checked={form.featured} onChange={(e) => field('featured', e.target.checked)} className="rounded" />
-                Nổi bật
-              </label>
-              <label className="flex items-center gap-2 text-sm text-[#3d2b25]">
-                <input type="checkbox" checked={form.active} onChange={(e) => field('active', e.target.checked)} className="rounded" />
-                Hoạt động
-              </label>
-            </div>
-          </div>
+          <p className="text-xs text-[#8a6a62]">Thứ tự hiển thị: tự gán số cuối khi tạo mới. Có thể chỉnh khi sửa.</p>
+          <Field label="Thứ tự hiển thị" value={form.order} onChange={(v) => field('order', v)} type="number" />
+          <AdminBoolChoice label="Nổi bật trang chủ" value={form.featured} onChange={(v) => field('featured', v)} />
+          <AdminBoolChoice label="Hiện trên web" value={form.active} onChange={(v) => field('active', v)} yes="Hiện" no="Ẩn" />
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-full border border-[#ddd0ca] text-sm text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">
               Hủy

@@ -5,12 +5,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import type { Role } from '@prisma/client';
+import { BCRYPT_ROUNDS } from '@spa/shared';
 import {
   buildPaginatedResult,
   parsePagination,
 } from '../common/utils/pagination-utils';
+import { parseListQuery } from '../common/utils/list-query';
 
 export interface CreateUserInput {
   email: string;
@@ -25,6 +28,8 @@ interface ListUsersParams {
   limit?: string;
   role?: Role;
   search?: string;
+  sort?: string;
+  dir?: string;
 }
 
 @Injectable()
@@ -51,9 +56,10 @@ export class UsersService {
     });
   }
 
-  async listAll({ page, limit, role, search }: ListUsersParams) {
+  async listAll({ page, limit, role, search, sort, dir }: ListUsersParams) {
     const pagination = parsePagination(page, limit);
-    const q = search?.trim();
+    const parsed = parseListQuery({ search, sort, dir }, ['createdAt', 'updatedAt', 'name', 'email'], 'createdAt');
+    const q = parsed.search;
     const where: Prisma.UserWhereInput = {
       ...(role && ['CUSTOMER', 'DOCTOR', 'SUPERADMIN'].includes(role)
         ? { role }
@@ -83,7 +89,7 @@ export class UsersService {
       return this.prisma.user.findMany({
         where,
         select,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [parsed.sort]: parsed.dir },
       });
     }
 
@@ -91,7 +97,7 @@ export class UsersService {
       this.prisma.user.findMany({
         where,
         select,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [parsed.sort]: parsed.dir },
         skip: pagination.skip,
         take: pagination.take,
       }),
@@ -102,7 +108,14 @@ export class UsersService {
   }
 
   async updateUser(id: string, body: unknown, currentUserId: string) {
-    const input = body as { name?: unknown; role?: unknown };
+    const input = body as {
+      name?: unknown;
+      email?: unknown;
+      phone?: unknown;
+      locale?: unknown;
+      role?: unknown;
+      password?: unknown;
+    };
     const data: Prisma.UserUpdateInput = {};
 
     if (input.name !== undefined) {
@@ -110,6 +123,30 @@ export class UsersService {
         throw new BadRequestException('name must be a non-empty string');
       }
       data.name = input.name.trim();
+    }
+
+    if (input.email !== undefined) {
+      if (typeof input.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) {
+        throw new BadRequestException('Invalid email');
+      }
+      data.email = input.email.trim().toLowerCase();
+    }
+
+    if (input.phone !== undefined) {
+      if (input.phone === null || input.phone === '') {
+        data.phone = null;
+      } else if (typeof input.phone !== 'string') {
+        throw new BadRequestException('Invalid phone');
+      } else {
+        data.phone = input.phone.trim();
+      }
+    }
+
+    if (input.locale !== undefined) {
+      if (typeof input.locale !== 'string' || !['vi', 'ko'].includes(input.locale)) {
+        throw new BadRequestException('Invalid locale');
+      }
+      data.locale = input.locale;
     }
 
     if (input.role !== undefined) {
@@ -123,6 +160,13 @@ export class UsersService {
         throw new BadRequestException('Cannot change your own role');
       }
       data.role = input.role as Role;
+    }
+
+    if (input.password !== undefined && input.password !== null && input.password !== '') {
+      if (typeof input.password !== 'string' || input.password.length < 8) {
+        throw new BadRequestException('Password must be at least 8 characters');
+      }
+      data.passwordHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
     }
 
     if (Object.keys(data).length === 0) {

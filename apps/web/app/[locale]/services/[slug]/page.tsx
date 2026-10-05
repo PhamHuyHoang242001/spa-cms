@@ -12,7 +12,7 @@ import { localizedText } from '@/lib/locale-content';
 import { resolveMediaUrl } from '@/lib/media-url';
 import { Clock, ArrowLeft, CalendarDays } from 'lucide-react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3101';
 
 async function fetchServices(): Promise<Service[]> {
   try {

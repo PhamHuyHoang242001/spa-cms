@@ -12,20 +12,20 @@ const imageUrlSchema = z.union([
 ]);
 
 export const createServiceSchema = z.object({
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens'),
+  slug: z.string().optional(),
   name: i18nTextSchema,
-  description: i18nTextSchema,
+  description: z.object({ vi: z.string(), ko: z.string() }).default({ vi: '', ko: '' }),
   priceVnd: z.number().int().min(0, 'Price must be non-negative'),
   durationMin: z.number().int().min(15, 'Duration must be at least 15 minutes'),
   coverUrl: imageUrlSchema.optional().nullable(),
   gallery: z.array(imageUrlSchema).default([]),
   featured: z.boolean().default(false),
   active: z.boolean().default(true),
-  order: z.number().int().min(0).default(0),
+  order: z.number().int().min(0).optional(),
 });
 
 export const updateServiceSchema = z.object({
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/).optional(),
+  slug: z.string().optional(),
   name: i18nTextSchema.optional(),
   description: i18nTextSchema.optional(),
   priceVnd: z.number().int().min(0).optional(),

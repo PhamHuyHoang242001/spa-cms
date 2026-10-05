@@ -8,15 +8,16 @@ import { apiPost, apiPatch } from '@/lib/api-client';
 import { AdminTable } from '@/components/admin/admin-table';
 import { AdminFormModal } from '@/components/admin/admin-form-modal';
 import { AdminImageUpload } from '@/components/admin/admin-image-upload';
-import { AdminSearchBar } from '@/components/admin/admin-search-bar';
+import { AdminListBar, fmtAdminDate } from '@/components/admin/admin-list-bar';
 import { AdminPagination } from '@/components/admin/admin-pagination';
 import { useAdminList } from '@/hooks/use-admin-list';
-import { Pencil, Plus, ToggleLeft, ToggleRight } from 'lucide-react';
+import { AdminBoolChoice } from '@/components/admin/admin-choice';
+import { Pencil, Plus } from 'lucide-react';
 
 // API returns DoctorProfile with nested user
 interface DoctorApiRow {
   id: string;
-  user: { id: string; name: string; email: string };
+  user: { id: string; name: string; email: string; createdAt?: string };
   specialty: { vi: string; ko: string };
   bio: { vi: string; ko: string };
   yearsExp: number;
@@ -37,6 +38,7 @@ interface DoctorRow {
   avatarUrl?: string | null;
   order?: number;
   active: boolean;
+  createdAt?: string;
 }
 
 const EMPTY_FORM = {
@@ -48,9 +50,9 @@ const EMPTY_FORM = {
   specialtyKo: '',
   bioVi: '',
   bioKo: '',
-  yearsExp: '',
+  yearsExp: '0',
   avatarUrl: '',
-  order: '0',
+  active: true,
 };
 
 type FormState = typeof EMPTY_FORM;
@@ -61,6 +63,7 @@ export default function DoctorsPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('');
   const {
     data,
     meta,
@@ -71,7 +74,11 @@ export default function DoctorsPage() {
     page,
     setPage,
     reload,
-  } = useAdminList<DoctorApiRow>({ url: '/doctors/admin' });
+    sort,
+    dir,
+    sortPinned,
+    applyColumnIcon,
+  } = useAdminList<DoctorApiRow>({ url: '/doctors/admin', extraParams: { active: activeFilter } });
   const rows = useMemo<DoctorRow[]>(
     () =>
       data.map((d) => ({
@@ -84,6 +91,7 @@ export default function DoctorsPage() {
         avatarUrl: d.avatarUrl ?? null,
         order: d.order ?? 0,
         active: d.active,
+        createdAt: d.user.createdAt,
       })),
     [data],
   );
@@ -107,7 +115,7 @@ export default function DoctorsPage() {
       bioKo: row.bio.ko,
       yearsExp: String(row.yearsExp),
       avatarUrl: row.avatarUrl ?? '',
-      order: String(row.order ?? 0),
+      active: row.active,
     });
     setModalOpen(true);
   }
@@ -128,11 +136,11 @@ export default function DoctorsPage() {
       const payload: Record<string, unknown> = {
         name: form.name,
         phone: form.phone,
-        specialty: { vi: form.specialtyVi, ko: form.specialtyKo },
-        bio: { vi: form.bioVi, ko: form.bioKo },
-        yearsExp: Number(form.yearsExp),
+        specialty: { vi: form.specialtyVi, ko: form.specialtyKo || form.specialtyVi },
+        bio: { vi: form.bioVi, ko: form.bioKo || form.bioVi },
+        yearsExp: Number(form.yearsExp || 0),
         avatarUrl: form.avatarUrl || null,
-        order: Number(form.order),
+        active: form.active,
       };
       if (editId) {
         await apiPatch(`/doctors/${editId}`, payload);
@@ -148,7 +156,7 @@ export default function DoctorsPage() {
     }
   }
 
-  function field(key: keyof FormState, value: string) {
+  function field(key: keyof FormState, value: string | boolean) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -156,7 +164,8 @@ export default function DoctorsPage() {
     { key: 'name', label: 'Họ tên' },
     { key: 'email', label: 'Email' },
     { key: 'specialty', label: 'Chuyên môn', render: (r: DoctorRow) => r.specialty.vi },
-    { key: 'yearsExp', label: 'Kinh nghiệm', render: (r: DoctorRow) => `${r.yearsExp} năm` },
+    { key: 'order', label: 'Thứ tự', sortKey: 'order', render: (r: DoctorRow) => r.order ?? '—' },
+    { key: 'yearsExp', label: 'Kinh nghiệm', sortKey: 'yearsExp', render: (r: DoctorRow) => `${r.yearsExp} năm` },
     {
       key: 'active', label: 'Trạng thái', render: (r: DoctorRow) => (
         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -164,6 +173,7 @@ export default function DoctorsPage() {
         </span>
       ),
     },
+    { key: 'createdAt', label: 'Tạo lúc', sortKey: 'createdAt', render: (r: DoctorRow) => <span className="whitespace-nowrap">{fmtAdminDate(r.createdAt)}</span> },
   ];
 
   return (
@@ -178,10 +188,11 @@ export default function DoctorsPage() {
         </button>
       </div>
 
-      <AdminSearchBar
-        value={search}
-        onChange={setSearch}
-        placeholder="Tìm bác sĩ theo tên, email hoặc chuyên môn..."
+      <AdminListBar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Tìm bác sĩ theo tên, email hoặc chuyên môn..."
+        filters={[{ key: 'active', label: 'Trạng thái', value: activeFilter, onChange: (v) => { setPage(1); setActiveFilter(v); }, options: [{ value: 'true', label: 'Hoạt động' }, { value: 'false', label: 'Tắt' }] }]}
       />
 
       {(error || listError) && (
@@ -192,17 +203,19 @@ export default function DoctorsPage() {
         columns={columns}
         data={rows}
         loading={loading}
+        sort={sort}
+        dir={dir}
+        sortPinned={sortPinned}
+        onSort={applyColumnIcon}
         actions={(row) => (
           <>
-            <button onClick={() => openEdit(row)} className="p-1.5 rounded-lg text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">
-              <Pencil size={15} />
-            </button>
+            <button type="button" onClick={() => openEdit(row)} className="px-3 py-1 text-xs border border-[#ddd0ca]"><Pencil size={14} /> Sửa</button>
             <button
+              type="button"
               onClick={() => toggleActive(row)}
-              className={`p-1.5 rounded-lg transition-colors ${row.active ? 'text-green-600 hover:bg-green-50' : 'text-gray-400 hover:bg-gray-50'}`}
-              title={row.active ? 'Tắt bác sĩ' : 'Kích hoạt bác sĩ'}
+              className={`px-3 py-1 text-xs ${row.active ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}
             >
-              {row.active ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+              {row.active ? 'Đang hiện' : 'Đang ẩn'}
             </button>
           </>
         )}
@@ -247,10 +260,9 @@ export default function DoctorsPage() {
             <DField label="Tiểu sử (VI)" value={form.bioVi} onChange={(v) => field('bioVi', v)} multiline />
             <DField label="Tiểu sử (KO)" value={form.bioKo} onChange={(v) => field('bioKo', v)} multiline />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <DField label="Số năm kinh nghiệm" value={form.yearsExp} onChange={(v) => field('yearsExp', v)} type="number" required />
-            <DField label="Thứ tự hiển thị" value={form.order} onChange={(v) => field('order', v)} type="number" />
-          </div>
+          <DField label="Số năm kinh nghiệm" value={form.yearsExp} onChange={(v) => field('yearsExp', v)} type="number" />
+          <p className="text-xs text-[#8a6a62]">Thứ tự hiển thị: tự gán số cuối khi tạo mới.</p>
+          <AdminBoolChoice label="Hiện trên web" value={form.active} onChange={(v) => field('active', v)} yes="Hiện" no="Ẩn" />
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-full border border-[#ddd0ca] text-sm text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">Hủy</button>
             <button type="submit" disabled={saving} className="px-4 py-2 rounded-full bg-[#B76E79] text-white text-sm font-medium hover:bg-[#a35d68] disabled:opacity-60 transition-colors">

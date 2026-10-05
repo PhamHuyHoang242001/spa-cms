@@ -56,6 +56,7 @@ export interface Booking {
   note?: string;
   cancelReason?: string;
   createdAt: string;
+  updatedAt?: string;
   service: {
     id: string;
     name: LocalizedString;

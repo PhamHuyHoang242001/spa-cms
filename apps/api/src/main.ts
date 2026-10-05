@@ -15,7 +15,7 @@ async function bootstrap() {
   );
 
   // CORS — allow web frontend
-  const corsOrigin = process.env['CORS_ORIGIN'] ?? 'http://localhost:3000';
+  const corsOrigin = process.env['CORS_ORIGIN'] ?? 'http://localhost:3100';
   app.enableCors({
     origin: corsOrigin,
     credentials: true,
@@ -23,7 +23,7 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  const port = process.env['PORT'] ?? 3001;
+  const port = process.env['PORT'] ?? 3101;
   await app.listen(port);
   console.log(`API running on http://localhost:${port}`);
 }

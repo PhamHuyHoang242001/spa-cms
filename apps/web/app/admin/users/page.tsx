@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { Pencil, Users } from 'lucide-react';
+import { AdminChoice } from '@/components/admin/admin-choice';
 import { apiPatch } from '@/lib/api-client';
 import { AdminFormModal } from '@/components/admin/admin-form-modal';
 import { AdminPagination } from '@/components/admin/admin-pagination';
-import { AdminSearchBar } from '@/components/admin/admin-search-bar';
+import { AdminListBar, fmtAdminDate } from '@/components/admin/admin-list-bar';
 import { AdminTable } from '@/components/admin/admin-table';
 import { useAdminList } from '@/hooks/use-admin-list';
 import { useAuth } from '@/lib/auth-context';
@@ -30,7 +31,11 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('');
   const [editUser, setEditUser] = useState<UserAdmin | null>(null);
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [locale, setLocale] = useState('vi');
   const [role, setRole] = useState<Role>('CUSTOMER');
+  const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
 
@@ -44,6 +49,10 @@ export default function AdminUsersPage() {
     page,
     setPage,
     reload,
+    sort,
+    dir,
+    sortPinned,
+    applyColumnIcon,
   } = useAdminList<UserAdmin>({
     url: '/users',
     extraParams: roleFilter ? { role: roleFilter } : undefined,
@@ -56,7 +65,11 @@ export default function AdminUsersPage() {
   function openEdit(row: UserAdmin) {
     setEditUser(row);
     setName(row.name);
+    setEmail(row.email);
+    setPhone(row.phone ?? '');
+    setLocale(row.locale === 'ko' ? 'ko' : 'vi');
     setRole(row.role);
+    setPassword('');
     setSaveError('');
   }
 
@@ -66,8 +79,21 @@ export default function AdminUsersPage() {
     setSaving(true);
     setSaveError('');
     try {
-      const payload: { name: string; role?: Role } = { name };
+      const payload: {
+        name: string;
+        email: string;
+        phone: string | null;
+        locale: string;
+        role?: Role;
+        password?: string;
+      } = {
+        name,
+        email,
+        phone: phone.trim() || null,
+        locale,
+      };
       if (editUser.id !== currentUser?.id) payload.role = role;
+      if (password) payload.password = password;
       await apiPatch(`/users/${editUser.id}`, payload);
       setEditUser(null);
       await reload();
@@ -79,8 +105,8 @@ export default function AdminUsersPage() {
   }
 
   const columns = [
-    { key: 'name', label: 'Họ tên' },
-    { key: 'email', label: 'Email' },
+    { key: 'name', label: 'Họ tên', sortKey: 'name' },
+    { key: 'email', label: 'Email', sortKey: 'email' },
     {
       key: 'role',
       label: 'Vai trò',
@@ -91,15 +117,23 @@ export default function AdminUsersPage() {
       ),
     },
     { key: 'phone', label: 'Điện thoại', render: (row: UserAdmin) => row.phone ?? '-' },
+    { key: 'locale', label: 'Ngôn ngữ', render: (row: UserAdmin) => (row.locale === 'ko' ? '한국어' : 'Tiếng Việt') },
     {
-      key: 'createdAt',
-      label: 'Ngày tạo',
-      render: (row: UserAdmin) => new Date(row.createdAt).toLocaleDateString('vi-VN'),
+      key: 'createdAtCol',
+      label: 'Tạo lúc',
+      sortKey: 'createdAt',
+      render: (row: UserAdmin) => <span className="whitespace-nowrap">{fmtAdminDate(row.createdAt)}</span>,
+    },
+    {
+      key: 'updatedAtCol',
+      label: 'Sửa lúc',
+      sortKey: 'updatedAt',
+      render: (row: UserAdmin) => <span className="whitespace-nowrap">{fmtAdminDate(row.updatedAt)}</span>,
     },
   ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#3d2b25]">Người dùng</h1>
@@ -108,19 +142,12 @@ export default function AdminUsersPage() {
         <Users className="text-[#B76E79]" size={24} />
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <AdminSearchBar value={search} onChange={setSearch} placeholder="Tìm theo tên, email hoặc điện thoại..." />
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className="w-full rounded-lg border border-[#ddd0ca] bg-[#fdfaf8] px-3 py-2 text-sm text-[#3d2b25] focus:border-[#B76E79] focus:outline-none focus:ring-2 focus:ring-[#B76E79]/40 md:w-56"
-        >
-          <option value="">Tất cả vai trò</option>
-          <option value="CUSTOMER">Khách hàng</option>
-          <option value="DOCTOR">Bác sĩ</option>
-          <option value="SUPERADMIN">Quản trị</option>
-        </select>
-      </div>
+      <AdminListBar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Tìm theo tên, email hoặc điện thoại..."
+        filters={[{ key: 'role', label: 'Vai trò', value: roleFilter, onChange: setRoleFilter, options: [{ value: 'CUSTOMER', label: 'Khách hàng' }, { value: 'DOCTOR', label: 'Bác sĩ' }, { value: 'SUPERADMIN', label: 'Quản trị' }] }]}
+      />
 
       {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
@@ -128,10 +155,12 @@ export default function AdminUsersPage() {
         columns={columns}
         data={users}
         loading={loading}
+        sort={sort}
+        dir={dir}
+        sortPinned={sortPinned}
+        onSort={applyColumnIcon}
         actions={(row) => (
-          <button onClick={() => openEdit(row)} className="rounded-lg p-1.5 text-[#6b4c41] transition-colors hover:bg-[#f5ede8]" title="Sửa">
-            <Pencil size={15} />
-          </button>
+          <button type="button" onClick={() => openEdit(row)} className="px-3 py-1 text-xs border border-[#ddd0ca]"><Pencil size={14} /> Sửa</button>
         )}
       />
 
@@ -145,18 +174,33 @@ export default function AdminUsersPage() {
             <input value={name} onChange={(e) => setName(e.target.value)} required className={fieldClass} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">Vai trò</label>
-            <select
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={fieldClass} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">Điện thoại</label>
+            <input value={phone} onChange={(e) => setPhone(e.target.value)} className={fieldClass} />
+          </div>
+          <AdminChoice
+            label="Ngôn ngữ"
+            value={locale}
+            onChange={setLocale}
+            options={[{ value: 'vi', label: 'Tiếng Việt' }, { value: 'ko', label: '한국어' }]}
+          />
+          <div>
+            <AdminChoice
+              label="Vai trò"
               value={role}
-              onChange={(e) => setRole(e.target.value as Role)}
-              disabled={editUser?.id === currentUser?.id}
-              className={fieldClass}
-              title={editUser?.id === currentUser?.id ? 'Không thể thay đổi vai trò của chính mình' : undefined}
-            >
-              <option value="CUSTOMER">Khách hàng</option>
-              <option value="DOCTOR">Bác sĩ</option>
-              <option value="SUPERADMIN">Quản trị</option>
-            </select>
+              onChange={(v) => {
+                if (editUser?.id === currentUser?.id) return;
+                setRole(v as Role);
+              }}
+              options={[
+                { value: 'CUSTOMER', label: 'Khách hàng' },
+                { value: 'DOCTOR', label: 'Bác sĩ' },
+                { value: 'SUPERADMIN', label: 'Quản trị' },
+              ]}
+            />
             {editUser?.id === currentUser?.id ? (
               <p className="mt-1 text-xs text-[#8a6a62]">Không thể thay đổi vai trò của chính mình.</p>
             ) : role !== editUser?.role ? (
@@ -164,6 +208,10 @@ export default function AdminUsersPage() {
                 Thay đổi vai trò sẽ ảnh hưởng đến quyền truy cập của người dùng này.
               </p>
             ) : null}
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">Mật khẩu mới</label>
+            <input type="password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} className={fieldClass} placeholder="Để trống nếu không đổi" />
           </div>
           <div className="flex justify-end gap-3">
             <button type="button" onClick={() => setEditUser(null)} className="rounded-full border border-[#ddd0ca] px-4 py-2 text-sm text-[#6b4c41] hover:bg-[#f5ede8]">Hủy</button>

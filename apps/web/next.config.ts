@@ -5,6 +5,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["*.ngrok-free.app"],
   turbopack: {
     root: path.resolve(__dirname, "../.."),
   },
@@ -15,7 +16,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:3001/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3101"}/:path*`,
       },
     ];
   },

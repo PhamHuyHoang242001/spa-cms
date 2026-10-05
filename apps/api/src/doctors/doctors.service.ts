@@ -16,6 +16,7 @@ import {
   buildPaginatedResult,
   parsePagination,
 } from '../common/utils/pagination-utils';
+import { parseListQuery } from '../common/utils/list-query';
 
 @Injectable()
 export class DoctorsService {
@@ -33,27 +34,35 @@ export class DoctorsService {
 
   // ── Admin list all doctors with backward-compatible pagination ──────────────
 
-  async listAll(page?: string, limit?: string, search?: string) {
-    const pagination = parsePagination(page, limit);
-    const q = search?.trim();
-    const where: Prisma.DoctorProfileWhereInput = q
-      ? {
-          OR: [
-            { user: { name: { contains: q, mode: 'insensitive' } } },
-            { user: { email: { contains: q, mode: 'insensitive' } } },
-            { specialty: { path: ['vi'], string_contains: q } },
-            { specialty: { path: ['ko'], string_contains: q } },
-            { bio: { path: ['vi'], string_contains: q } },
-            { bio: { path: ['ko'], string_contains: q } },
-          ],
-        }
-      : {};
-    const include = { user: { select: { id: true, name: true, email: true } } };
+  async listAll(query: Record<string, string | undefined> = {}) {
+    const pagination = parsePagination(query.page, query.limit);
+    const { search, sort, dir, filter } = parseListQuery(query, ['createdAt', 'order', 'yearsExp'], 'createdAt');
+    const q = search;
+    const where: Prisma.DoctorProfileWhereInput = {
+      ...(filter.active === 'true' ? { active: true } : {}),
+      ...(filter.active === 'false' ? { active: false } : {}),
+      ...(q
+        ? {
+            OR: [
+              { user: { name: { contains: q, mode: 'insensitive' } } },
+              { user: { email: { contains: q, mode: 'insensitive' } } },
+              { specialty: { path: ['vi'], string_contains: q } },
+              { specialty: { path: ['ko'], string_contains: q } },
+              { bio: { path: ['vi'], string_contains: q } },
+              { bio: { path: ['ko'], string_contains: q } },
+            ],
+          }
+        : {}),
+    };
+    const include = { user: { select: { id: true, name: true, email: true, createdAt: true } } };
+    const orderBy = sort === 'createdAt'
+      ? { user: { createdAt: dir } }
+      : { [sort]: dir };
 
     if (!pagination) {
       return this.prisma.doctorProfile.findMany({
         where,
-        orderBy: { order: 'asc' },
+        orderBy,
         include,
       });
     }
@@ -61,7 +70,7 @@ export class DoctorsService {
     const [data, total] = await Promise.all([
       this.prisma.doctorProfile.findMany({
         where,
-        orderBy: { order: 'asc' },
+        orderBy,
         include,
         skip: pagination.skip,
         take: pagination.take,
@@ -101,6 +110,7 @@ export class DoctorsService {
       avatarUrl,
       yearsExp,
       order,
+      active,
     } = parsed.data;
 
     const existing = await this.prisma.user.findUnique({ where: { email } });
@@ -120,7 +130,8 @@ export class DoctorsService {
             bio,
             avatarUrl,
             yearsExp: yearsExp ?? 0,
-            order: order ?? 0,
+            order: order ?? ((await tx.doctorProfile.aggregate({ _max: { order: true } }))._max.order ?? -1) + 1,
+            active,
           },
           include: { user: { select: { id: true, name: true, email: true } } },
         });

@@ -69,6 +69,7 @@ export function SiteHeader() {
                 {t('greeting', { name: user.name })}
               </span>
               <button
+                type="button"
                 onClick={handleLogout}
                 className="px-4 py-1.5 rounded-full border border-[#D4A574] text-[#D4A574] hover:bg-[#D4A574] hover:text-[#120E0B] transition-colors text-xs font-bold"
               >
@@ -95,7 +96,8 @@ export function SiteHeader() {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden p-2 text-white"
+          type="button"
+          className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 hover:text-[#F4CFA3] transition-colors"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -122,9 +124,10 @@ export function SiteHeader() {
               <>
                 <span className="text-sm text-white/80">{t('greeting', { name: user.name })}</span>
                 <button
+                  type="button"
                   onClick={handleLogout}
                   aria-label={t('logout')}
-                  className="text-sm text-[#D4A574] text-left font-medium"
+                  className="text-sm text-[#D4A574] text-left font-medium hover:underline"
                 >
                   {t('logout')}
                 </button>

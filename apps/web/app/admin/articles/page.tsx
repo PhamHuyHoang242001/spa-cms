@@ -8,11 +8,12 @@ import { apiPost, apiPatch, apiDelete } from '@/lib/api-client';
 import { AdminTable } from '@/components/admin/admin-table';
 import { AdminFormModal } from '@/components/admin/admin-form-modal';
 import { AdminImageUpload } from '@/components/admin/admin-image-upload';
-import { AdminSearchBar } from '@/components/admin/admin-search-bar';
+import { AdminListBar, fmtAdminDate } from '@/components/admin/admin-list-bar';
 import { AdminPagination } from '@/components/admin/admin-pagination';
 import { TiptapEditor } from '@/components/admin/tiptap-editor';
 import { useAdminList } from '@/hooks/use-admin-list';
-import { Pencil, Trash2, Plus, Eye, EyeOff } from 'lucide-react';
+import { AdminBoolChoice } from '@/components/admin/admin-choice';
+import { Pencil, Trash2, Plus } from 'lucide-react';
 import type { Article } from '@/lib/api-types';
 import { generateHTML } from '@tiptap/html';
 import TiptapImage from '@tiptap/extension-image';
@@ -42,6 +43,7 @@ export default function ArticlesPage() {
   const [contentTab, setContentTab] = useState<'vi' | 'ko'>('vi');
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [published, setPublished] = useState('');
   const {
     data: rows,
     meta,
@@ -52,7 +54,11 @@ export default function ArticlesPage() {
     page,
     setPage,
     reload,
-  } = useAdminList<Article>({ url: '/articles/admin' });
+    sort,
+    dir,
+    sortPinned,
+    applyColumnIcon,
+  } = useAdminList<Article>({ url: '/articles/admin', extraParams: { published } });
 
   function openCreate() {
     setEditId(null);
@@ -94,7 +100,6 @@ export default function ArticlesPage() {
     setSaving(true);
     try {
       const payload = {
-        slug: form.slug,
         title: { vi: form.titleVi, ko: form.titleKo },
         excerpt: { vi: form.excerptVi, ko: form.excerptKo },
         content: { vi: form.contentVi, ko: form.contentKo },
@@ -133,7 +138,6 @@ export default function ArticlesPage() {
 
   const columns = [
     { key: 'title', label: 'Tiêu đề', render: (r: Article) => r.title.vi },
-    { key: 'slug', label: 'Slug' },
     {
       key: 'featured', label: 'Nổi bật', render: (r: Article) => (
         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.featured ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -142,14 +146,15 @@ export default function ArticlesPage() {
       ),
     },
     {
-      key: 'publishedAt', label: 'Trạng thái', render: (r: Article) => (
+      key: 'publishedAt', label: 'Trạng thái', sortKey: 'publishedAt', render: (r: Article) => (
         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.publishedAt ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
           {r.publishedAt ? 'Đã đăng' : 'Bản nháp'}
         </span>
       ),
     },
     { key: 'author', label: 'Tác giả', render: (r: Article) => r.author?.name ?? '—' },
-    { key: 'createdAt', label: 'Ngày tạo', render: (r: Article) => new Date(r.createdAt).toLocaleDateString('vi-VN') },
+    { key: 'createdAt', label: 'Tạo lúc', sortKey: 'createdAt', render: (r: Article) => <span className="whitespace-nowrap">{fmtAdminDate(r.createdAt)}</span> },
+    { key: 'updatedAt', label: 'Sửa lúc', sortKey: 'updatedAt', render: (r: Article) => <span className="whitespace-nowrap">{fmtAdminDate(r.updatedAt)}</span> },
   ];
 
   return (
@@ -164,10 +169,11 @@ export default function ArticlesPage() {
         </button>
       </div>
 
-      <AdminSearchBar
-        value={search}
-        onChange={setSearch}
-        placeholder="Tìm bài viết theo tiêu đề hoặc slug..."
+      <AdminListBar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Tìm bài viết theo tiêu đề..."
+        filters={[{ key: 'published', label: 'Xuất bản', value: published, onChange: (v) => { setPage(1); setPublished(v); }, options: [{ value: 'true', label: 'Đã đăng' }, { value: 'false', label: 'Bản nháp' }] }]}
       />
 
       {(error || listError) && (
@@ -178,21 +184,17 @@ export default function ArticlesPage() {
         columns={columns}
         data={rows}
         loading={loading}
+        sort={sort}
+        dir={dir}
+        sortPinned={sortPinned}
+        onSort={applyColumnIcon}
         actions={(row) => (
           <>
-            <button
-              onClick={() => togglePublish(row)}
-              className={`p-1.5 rounded-lg transition-colors ${row.publishedAt ? 'text-green-600 hover:bg-green-50' : 'text-amber-500 hover:bg-amber-50'}`}
-              title={row.publishedAt ? 'Hủy đăng' : 'Đăng bài'}
-            >
-              {row.publishedAt ? <EyeOff size={15} /> : <Eye size={15} />}
+            <button type="button" onClick={() => togglePublish(row)} className={`px-3 py-1 text-xs ${row.publishedAt ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
+              {row.publishedAt ? 'Đã đăng — gỡ' : 'Bản nháp — đăng'}
             </button>
-            <button onClick={() => openEdit(row)} className="p-1.5 rounded-lg text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">
-              <Pencil size={15} />
-            </button>
-            <button onClick={() => setDeleteId(row.id)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors">
-              <Trash2 size={15} />
-            </button>
+            <button type="button" onClick={() => openEdit(row)} className="px-3 py-1 text-xs border border-[#ddd0ca]"><Pencil size={14} /> Sửa</button>
+            <button type="button" onClick={() => setDeleteId(row.id)} className="px-3 py-1 text-xs bg-red-50 text-red-600"><Trash2 size={14} /> Xóa</button>
           </>
         )}
       />
@@ -218,7 +220,6 @@ export default function ArticlesPage() {
             <AField label="Tiêu đề (VI)" value={form.titleVi} onChange={(v) => field('titleVi', v)} required />
             <AField label="Tiêu đề (KO)" value={form.titleKo} onChange={(v) => field('titleKo', v)} />
           </div>
-          <AField label="Slug" value={form.slug} onChange={(v) => field('slug', v)} required />
           <AdminImageUpload
             value={form.coverUrl || null}
             onChange={(url) => field('coverUrl', url ?? '')}
@@ -245,15 +246,7 @@ export default function ArticlesPage() {
               placeholder={contentTab === 'vi' ? 'Nhập nội dung tiếng Việt...' : '한국어 내용을 입력하세요...'}
             />
           </div>
-          <label className="flex items-center gap-2 text-sm text-[#3d2b25]">
-            <input
-              type="checkbox"
-              checked={form.featured}
-              onChange={(e) => field('featured', e.target.checked)}
-              className="rounded"
-            />
-            Bài viết nổi bật
-          </label>
+          <AdminBoolChoice label="Nổi bật trên blog" value={form.featured} onChange={(v) => field('featured', v)} />
           <AField label="Tags (cách nhau bởi dấu phẩy)" value={form.tags} onChange={(v) => field('tags', v)} />
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-full border border-[#ddd0ca] text-sm text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">Hủy</button>

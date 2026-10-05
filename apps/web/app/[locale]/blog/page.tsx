@@ -28,7 +28,7 @@ interface ArticlesResponse {
 }
 
 async function fetchArticles(page = 1, tag?: string): Promise<ArticlesResponse> {
-  const apiUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001';
+  const apiUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3101';
   const params = new URLSearchParams({ page: String(page) });
   if (tag) params.set('tag', tag);
 

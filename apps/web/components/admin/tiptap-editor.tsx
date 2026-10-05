@@ -8,7 +8,7 @@ import TiptapLink from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import { apiUpload } from '@/lib/api-client';
-import { resolveMediaUrl } from '@/lib/media-url';
+import { resolveMediaUrl, rewriteMediaUrlsInHtml } from '@/lib/media-url';
 import {
   Bold,
   Heading1,
@@ -45,7 +45,7 @@ export function TiptapEditor({
       Image.configure({ inline: false, allowBase64: false }),
       Placeholder.configure({ placeholder }),
     ],
-    content: value,
+    content: rewriteMediaUrlsInHtml(value),
     onUpdate: ({ editor: activeEditor }) => onChange(activeEditor.getHTML()),
     editorProps: {
       attributes: {
@@ -57,7 +57,7 @@ export function TiptapEditor({
 
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || '<p></p>', { emitUpdate: false });
+      editor.commands.setContent(rewriteMediaUrlsInHtml(value) || '<p></p>', { emitUpdate: false });
     }
   }, [editor, value]);
 

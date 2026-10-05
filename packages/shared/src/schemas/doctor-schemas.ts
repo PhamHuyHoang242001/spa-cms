@@ -19,10 +19,11 @@ export const createDoctorSchema = z.object({
   phone: z.string().optional(),
   // DoctorProfile fields
   specialty: i18nTextSchema,
-  bio: i18nTextSchema,
+  bio: z.object({ vi: z.string(), ko: z.string() }).default({ vi: '', ko: '' }),
   avatarUrl: imageUrlSchema.optional().nullable(),
   yearsExp: z.number().int().min(0).default(0),
-  order: z.number().int().min(0).default(0),
+  order: z.number().int().min(0).optional(),
+  active: z.boolean().default(true),
 });
 
 export const updateDoctorSchema = z.object({

@@ -29,12 +29,8 @@ export class ServicesController {
   @Get('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPERADMIN')
-  listAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('search') search?: string,
-  ) {
-    return this.servicesService.listAll(page, limit, search);
+  listAll(@Query() query: Record<string, string | undefined>) {
+    return this.servicesService.listAll(query);
   }
 
   // Public — service detail by slug

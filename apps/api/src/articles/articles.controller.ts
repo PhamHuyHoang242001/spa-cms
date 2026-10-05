@@ -33,12 +33,8 @@ export class ArticlesController {
   @Get('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPERADMIN')
-  listAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('search') search?: string,
-  ) {
-    return this.articlesService.listAll(page, limit, search);
+  listAll(@Query() query: Record<string, string | undefined>) {
+    return this.articlesService.listAll(query);
   }
 
   // Public — article detail by slug

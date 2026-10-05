@@ -11,6 +11,8 @@ import {
   buildPaginatedResult,
   parsePagination,
 } from '../common/utils/pagination-utils';
+import { uniqueSlug } from '../common/utils/slug-utils';
+import { parseListQuery } from '../common/utils/list-query';
 
 @Injectable()
 export class ServicesService {
@@ -27,29 +29,36 @@ export class ServicesService {
 
   // ── Admin list all services with backward-compatible pagination ─────────────
 
-  async listAll(page?: string, limit?: string, search?: string) {
-    const pagination = parsePagination(page, limit);
-    const q = search?.trim();
-    const where: Prisma.ServiceWhereInput = q
-      ? {
-          OR: [
-            { slug: { contains: q, mode: 'insensitive' } },
-            { name: { path: ['vi'], string_contains: q } },
-            { name: { path: ['ko'], string_contains: q } },
-            { description: { path: ['vi'], string_contains: q } },
-            { description: { path: ['ko'], string_contains: q } },
-          ],
-        }
-      : {};
+  async listAll(query: Record<string, string | undefined> = {}) {
+    const pagination = parsePagination(query.page, query.limit);
+    const { search, sort, dir, filter } = parseListQuery(query, ['createdAt', 'updatedAt', 'priceVnd', 'order', 'durationMin'], 'createdAt');
+    const q = search;
+    const where: Prisma.ServiceWhereInput = {
+      ...(filter.active === 'true' ? { active: true } : {}),
+      ...(filter.active === 'false' ? { active: false } : {}),
+      ...(filter.featured === 'true' ? { featured: true } : {}),
+      ...(filter.featured === 'false' ? { featured: false } : {}),
+      ...(q
+        ? {
+            OR: [
+              { slug: { contains: q, mode: 'insensitive' } },
+              { name: { path: ['vi'], string_contains: q } },
+              { name: { path: ['ko'], string_contains: q } },
+              { description: { path: ['vi'], string_contains: q } },
+              { description: { path: ['ko'], string_contains: q } },
+            ],
+          }
+        : {}),
+    };
 
     if (!pagination) {
-      return this.prisma.service.findMany({ where, orderBy: { order: 'asc' } });
+      return this.prisma.service.findMany({ where, orderBy: { [sort]: dir } });
     }
 
     const [data, total] = await Promise.all([
       this.prisma.service.findMany({
         where,
-        orderBy: { order: 'asc' },
+        orderBy: { [sort]: dir },
         skip: pagination.skip,
         take: pagination.take,
       }),
@@ -75,12 +84,14 @@ export class ServicesService {
       throw new BadRequestException(parsed.error.flatten().fieldErrors);
     }
 
-    const existing = await this.prisma.service.findUnique({
-      where: { slug: parsed.data.slug },
-    });
-    if (existing) throw new BadRequestException('Slug already in use');
+    const { slug: _ignored, order, ...data } = parsed.data;
+    const slug = await uniqueSlug(data.name.vi, async (s) =>
+      Boolean(await this.prisma.service.findUnique({ where: { slug: s } })),
+    );
+    const agg = await this.prisma.service.aggregate({ _max: { order: true } });
+    const nextOrder = order ?? (agg._max.order ?? -1) + 1;
 
-    return this.prisma.service.create({ data: parsed.data });
+    return this.prisma.service.create({ data: { ...data, slug, order: nextOrder } });
   }
 
   // ── Update service by id ─────────────────────────────────────────────────────
@@ -94,15 +105,8 @@ export class ServicesService {
     const service = await this.prisma.service.findUnique({ where: { id } });
     if (!service) throw new NotFoundException(`Service ${id} not found`);
 
-    // Check slug uniqueness if being changed
-    if (parsed.data.slug && parsed.data.slug !== service.slug) {
-      const conflict = await this.prisma.service.findUnique({
-        where: { slug: parsed.data.slug },
-      });
-      if (conflict) throw new BadRequestException('Slug already in use');
-    }
-
-    return this.prisma.service.update({ where: { id }, data: parsed.data });
+    const { slug: _ignored, ...data } = parsed.data;
+    return this.prisma.service.update({ where: { id }, data });
   }
 
   // ── Soft delete (active=false) ───────────────────────────────────────────────

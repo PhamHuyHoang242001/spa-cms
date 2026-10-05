@@ -26,8 +26,10 @@ export class UsersController {
     @Query('limit') limit?: string,
     @Query('role') role?: Role,
     @Query('search') search?: string,
+    @Query('sort') sort?: string,
+    @Query('dir') dir?: string,
   ) {
-    return this.usersService.listAll({ page, limit, role, search });
+    return this.usersService.listAll({ page, limit, role, search, sort, dir });
   }
 
   @Patch(':id')

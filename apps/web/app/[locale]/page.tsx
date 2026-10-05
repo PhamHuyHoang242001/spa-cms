@@ -11,7 +11,7 @@ import { DoctorsShowcaseSection } from '@/components/sections/doctors-showcase-s
 import { ProcessTimelineSection } from '@/components/sections/process-timeline-section';
 import { CtaBandSection } from '@/components/sections/cta-band-section';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3101';
 const HOME_API_TIMEOUT_MS = 1500;
 
 async function fetchServices(): Promise<Service[]> {

@@ -174,9 +174,9 @@ export default function SlotsPage() {
               {slot.status !== 'BOOKED' && (
                 <button
                   onClick={() => toggleBlock(slot)}
-                  className="text-xs text-[#8a6a62] underline hover:text-[#3d2b25] transition-colors self-start"
+                  className={`px-3 py-1.5 text-xs font-medium ${slot.status === 'BLOCKED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-[#3d2b25]'}`}
                 >
-                  {slot.status === 'BLOCKED' ? 'Mở lại' : 'Chặn'}
+                  {slot.status === 'BLOCKED' ? 'Mở lịch' : 'Chặn lịch'}
                 </button>
               )}
             </div>

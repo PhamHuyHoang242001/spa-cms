@@ -5,7 +5,7 @@
 import type { MetadataRoute } from 'next';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://kbeautyspa.vn';
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3101';
 
 // Static public routes with their update frequencies
 const STATIC_ROUTES: MetadataRoute.Sitemap = [

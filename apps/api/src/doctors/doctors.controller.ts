@@ -29,12 +29,8 @@ export class DoctorsController {
   @Get('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPERADMIN')
-  listAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('search') search?: string,
-  ) {
-    return this.doctorsService.listAll(page, limit, search);
+  listAll(@Query() query: Record<string, string | undefined>) {
+    return this.doctorsService.listAll(query);
   }
 
   // Public — doctor detail

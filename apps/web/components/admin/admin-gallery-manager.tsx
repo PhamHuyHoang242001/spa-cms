@@ -22,14 +22,18 @@ export function AdminGalleryManager({
   const [error, setError] = useState('');
 
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = [...(e.target.files ?? [])];
+    if (!files.length) return;
 
     setUploading(true);
     setError('');
     try {
-      const result = await apiUpload(file);
-      onChange([...value, result.url]);
+      const urls: string[] = [];
+      for (const file of files) {
+        const result = await apiUpload(file);
+        urls.push(result.url);
+      }
+      onChange([...value, ...urls]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Tải ảnh thất bại');
       window.setTimeout(() => setError(''), 5000);
@@ -52,6 +56,7 @@ export function AdminGalleryManager({
         ref={inputRef}
         type="file"
         accept="image/*"
+        multiple
         className="hidden"
         onChange={handleFileChange}
       />
