@@ -58,7 +58,11 @@ export class UsersService {
 
   async listAll({ page, limit, role, search, sort, dir }: ListUsersParams) {
     const pagination = parsePagination(page, limit);
-    const parsed = parseListQuery({ search, sort, dir }, ['createdAt', 'updatedAt', 'name', 'email'], 'createdAt');
+    const parsed = parseListQuery(
+      { search, sort, dir },
+      ['createdAt', 'updatedAt', 'name', 'email'],
+      'createdAt',
+    );
     const q = parsed.search;
     const where: Prisma.UserWhereInput = {
       ...(role && ['CUSTOMER', 'DOCTOR', 'SUPERADMIN'].includes(role)
@@ -126,7 +130,10 @@ export class UsersService {
     }
 
     if (input.email !== undefined) {
-      if (typeof input.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) {
+      if (
+        typeof input.email !== 'string' ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())
+      ) {
         throw new BadRequestException('Invalid email');
       }
       data.email = input.email.trim().toLowerCase();
@@ -143,7 +150,10 @@ export class UsersService {
     }
 
     if (input.locale !== undefined) {
-      if (typeof input.locale !== 'string' || !['vi', 'ko'].includes(input.locale)) {
+      if (
+        typeof input.locale !== 'string' ||
+        !['vi', 'ko'].includes(input.locale)
+      ) {
         throw new BadRequestException('Invalid locale');
       }
       data.locale = input.locale;
@@ -162,7 +172,11 @@ export class UsersService {
       data.role = input.role as Role;
     }
 
-    if (input.password !== undefined && input.password !== null && input.password !== '') {
+    if (
+      input.password !== undefined &&
+      input.password !== null &&
+      input.password !== ''
+    ) {
       if (typeof input.password !== 'string' || input.password.length < 8) {
         throw new BadRequestException('Password must be at least 8 characters');
       }

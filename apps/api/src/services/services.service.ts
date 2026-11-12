@@ -31,7 +31,11 @@ export class ServicesService {
 
   async listAll(query: Record<string, string | undefined> = {}) {
     const pagination = parsePagination(query.page, query.limit);
-    const { search, sort, dir, filter } = parseListQuery(query, ['createdAt', 'updatedAt', 'priceVnd', 'order', 'durationMin'], 'createdAt');
+    const { search, sort, dir, filter } = parseListQuery(
+      query,
+      ['createdAt', 'updatedAt', 'priceVnd', 'order', 'durationMin'],
+      'createdAt',
+    );
     const q = search;
     const where: Prisma.ServiceWhereInput = {
       ...(filter.active === 'true' ? { active: true } : {}),
@@ -91,7 +95,9 @@ export class ServicesService {
     const agg = await this.prisma.service.aggregate({ _max: { order: true } });
     const nextOrder = order ?? (agg._max.order ?? -1) + 1;
 
-    return this.prisma.service.create({ data: { ...data, slug, order: nextOrder } });
+    return this.prisma.service.create({
+      data: { ...data, slug, order: nextOrder },
+    });
   }
 
   // ── Update service by id ─────────────────────────────────────────────────────

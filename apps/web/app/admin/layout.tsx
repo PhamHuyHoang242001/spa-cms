@@ -3,21 +3,21 @@
 // admin/layout.tsx — Auth guard + role check for all /admin/* routes
 // Redirects unauthenticated users to /admin/login, CUSTOMER role to /
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
+
+const noopSubscribe = () => () => {};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const isLoginPage = pathname === '/admin/login';
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    setReady(true);
-  }, []);
+  // false during SSR/hydration, true on the client — avoids a hydration mismatch
+  // without setting state inside an effect.
+  const ready = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
   useEffect(() => {
     if (isLoginPage) return;

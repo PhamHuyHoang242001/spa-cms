@@ -41,7 +41,10 @@ export class UploadsController {
         const hasAllowedMimeType = ALLOWED_MIME_TYPES.test(file.mimetype);
 
         if (!hasAllowedExtension || !hasAllowedMimeType) {
-          return cb(new BadRequestException('Only image files are allowed'), false);
+          return cb(
+            new BadRequestException('Only image files are allowed'),
+            false,
+          );
         }
 
         cb(null, true);

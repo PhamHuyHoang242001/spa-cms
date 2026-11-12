@@ -59,7 +59,11 @@ export class ArticlesService {
 
   async listAll(query: Record<string, string | undefined> = {}) {
     const pagination = parsePagination(query.page, query.limit);
-    const { search, sort, dir, filter } = parseListQuery(query, ['createdAt', 'updatedAt', 'publishedAt'], 'createdAt');
+    const { search, sort, dir, filter } = parseListQuery(
+      query,
+      ['createdAt', 'updatedAt', 'publishedAt'],
+      'createdAt',
+    );
     const q = search;
     const where: Prisma.ArticleWhereInput = {
       ...(filter.published === 'true' ? { publishedAt: { not: null } } : {}),

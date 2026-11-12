@@ -36,7 +36,11 @@ export class DoctorsService {
 
   async listAll(query: Record<string, string | undefined> = {}) {
     const pagination = parsePagination(query.page, query.limit);
-    const { search, sort, dir, filter } = parseListQuery(query, ['createdAt', 'order', 'yearsExp'], 'createdAt');
+    const { search, sort, dir, filter } = parseListQuery(
+      query,
+      ['createdAt', 'order', 'yearsExp'],
+      'createdAt',
+    );
     const q = search;
     const where: Prisma.DoctorProfileWhereInput = {
       ...(filter.active === 'true' ? { active: true } : {}),
@@ -54,10 +58,11 @@ export class DoctorsService {
           }
         : {}),
     };
-    const include = { user: { select: { id: true, name: true, email: true, createdAt: true } } };
-    const orderBy = sort === 'createdAt'
-      ? { user: { createdAt: dir } }
-      : { [sort]: dir };
+    const include = {
+      user: { select: { id: true, name: true, email: true, createdAt: true } },
+    };
+    const orderBy =
+      sort === 'createdAt' ? { user: { createdAt: dir } } : { [sort]: dir };
 
     if (!pagination) {
       return this.prisma.doctorProfile.findMany({
@@ -130,7 +135,10 @@ export class DoctorsService {
             bio,
             avatarUrl,
             yearsExp: yearsExp ?? 0,
-            order: order ?? ((await tx.doctorProfile.aggregate({ _max: { order: true } }))._max.order ?? -1) + 1,
+            order:
+              order ??
+              ((await tx.doctorProfile.aggregate({ _max: { order: true } }))
+                ._max.order ?? -1) + 1,
             active,
           },
           include: { user: { select: { id: true, name: true, email: true } } },
