@@ -38,7 +38,7 @@ export function AdminImageUpload({ value, onChange, label }: AdminImageUploadPro
   return (
     <div className="space-y-1.5">
       {label && (
-        <label className="block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+        <label className="block text-xs font-medium uppercase tracking-wider text-[#57534E]">
           {label}
         </label>
       )}
@@ -53,7 +53,7 @@ export function AdminImageUpload({ value, onChange, label }: AdminImageUploadPro
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg border border-dashed border-[#c9b8b0] bg-[#fdfaf8] text-sm text-[#8a6a62] transition-colors hover:bg-[#f5ede8] disabled:cursor-wait"
+        className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg border border-dashed border-[#c9b8b0] bg-[#FAF7F2] text-sm text-[#78716C] transition-colors hover:bg-[#f5ede8] disabled:cursor-wait"
       >
         {value ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -69,7 +69,7 @@ export function AdminImageUpload({ value, onChange, label }: AdminImageUploadPro
           </span>
         )}
         {uploading && (
-          <span className="absolute inset-0 flex items-center justify-center bg-white/70 text-[#B76E79]">
+          <span className="absolute inset-0 flex items-center justify-center bg-white/70 text-[#D4A574]">
             <Loader2 className="animate-spin" size={24} />
           </span>
         )}

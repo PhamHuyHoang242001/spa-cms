@@ -36,16 +36,16 @@ export function AdminTable<T extends { id: string }>({
 }: AdminTableProps<T>) {
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 text-[#8a6a62]">
+      <div className="flex items-center justify-center py-16 text-[#78716C]">
         Đang tải...
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-[#ede4de]">
+    <div className="overflow-x-auto rounded-xl border border-[#E5DDD5]">
       <table className="w-full text-sm text-left">
-        <thead className="bg-[#f5ede8] text-[#6b4c41] uppercase text-xs tracking-wider">
+        <thead className="bg-[#f5ede8] text-[#57534E] uppercase text-xs tracking-wider">
           <tr>
             {columns.map((col) => {
               const state = { sort, dir, pinned: sortPinned };
@@ -58,13 +58,13 @@ export function AdminTable<T extends { id: string }>({
                         <ChevronUp
                           size={12}
                           aria-label={`Sắp xếp ${col.label} tăng dần`}
-                          className={`cursor-pointer ${isIconActive(state, col.sortKey, 'asc') ? 'text-[#B76E79]' : 'text-[#c4b4ad] hover:text-[#8a6a62]'}`}
+                          className={`cursor-pointer ${isIconActive(state, col.sortKey, 'asc') ? 'text-[#D4A574]' : 'text-[#c4b4ad] hover:text-[#78716C]'}`}
                           onClick={() => onSort(col.sortKey as string, 'asc')}
                         />
                         <ChevronDown
                           size={12}
                           aria-label={`Sắp xếp ${col.label} giảm dần`}
-                          className={`cursor-pointer ${isIconActive(state, col.sortKey, 'desc') ? 'text-[#B76E79]' : 'text-[#c4b4ad] hover:text-[#8a6a62]'}`}
+                          className={`cursor-pointer ${isIconActive(state, col.sortKey, 'desc') ? 'text-[#D4A574]' : 'text-[#c4b4ad] hover:text-[#78716C]'}`}
                           onClick={() => onSort(col.sortKey as string, 'desc')}
                         />
                       </span>
@@ -83,7 +83,7 @@ export function AdminTable<T extends { id: string }>({
             <tr>
               <td
                 colSpan={columns.length + (actions ? 1 : 0)}
-                className="px-4 py-8 text-center text-[#a89080]"
+                className="px-4 py-8 text-center text-[#A8A29E]"
               >
                 {emptyText}
               </td>
@@ -92,7 +92,7 @@ export function AdminTable<T extends { id: string }>({
             data.map((row) => (
               <tr key={row.id} className="hover:bg-[#fdf9f7] transition-colors">
                 {columns.map((col) => (
-                  <td key={col.key} className="px-4 py-3 text-[#3d2b25]">
+                  <td key={col.key} className="px-4 py-3 text-[#1C1917]">
                     {col.render
                       ? col.render(row)
                       : String((row as Record<string, unknown>)[col.key] ?? '')}

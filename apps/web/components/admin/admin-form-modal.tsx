@@ -44,11 +44,11 @@ export function AdminFormModal({
       {/* Panel */}
       <div className={`relative z-10 w-full ${maxWidthClassName} max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#ede4de]">
-          <h2 className="text-base font-semibold text-[#3d2b25]">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5DDD5]">
+          <h2 className="text-base font-semibold text-[#1C1917]">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#8a6a62] hover:bg-[#f5ede8] transition-colors"
+            className="p-1.5 rounded-lg text-[#78716C] hover:bg-[#f5ede8] transition-colors"
           >
             <X size={18} />
           </button>

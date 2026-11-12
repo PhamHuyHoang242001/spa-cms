@@ -48,7 +48,7 @@ export default function AdminError({ error, reset }: ErrorProps) {
         </button>
         <Link
           href="/admin/dashboard"
-          className="flex items-center gap-2 px-5 py-2 rounded-lg border border-[#E5DDD5] text-[#6B4C41] text-sm font-semibold hover:border-[#1C1917] transition-colors"
+          className="flex items-center gap-2 px-5 py-2 rounded-lg border border-[#E5DDD5] text-[#57534E] text-sm font-semibold hover:border-[#1C1917] transition-colors"
         >
           <LayoutDashboard size={14} />
           Dashboard

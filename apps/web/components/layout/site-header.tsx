@@ -71,7 +71,7 @@ export function SiteHeader() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="px-4 py-1.5 rounded-full border border-[#D4A574] text-[#D4A574] hover:bg-[#D4A574] hover:text-[#120E0B] transition-colors text-xs font-bold"
+                className="!m-0 px-4 py-1.5 rounded-full !border-[#D4A574] !bg-transparent text-[#D4A574] hover:!bg-[#D4A574] hover:text-[#120E0B] transition-colors text-xs font-bold"
               >
                 {t('logout')}
               </button>
@@ -97,9 +97,10 @@ export function SiteHeader() {
         {/* Mobile hamburger */}
         <button
           type="button"
-          className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 hover:text-[#F4CFA3] transition-colors"
+          className="md:hidden !m-0 !border-0 !bg-transparent !shadow-none !p-2 !rounded-lg text-white hover:!bg-white/10 hover:!translate-y-0 hover:text-[#F4CFA3] transition-colors"
           onClick={() => setMobileOpen((v) => !v)}
-          aria-label="Toggle menu"
+          aria-label="Mở menu"
+          aria-expanded={mobileOpen}
         >
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
@@ -127,7 +128,7 @@ export function SiteHeader() {
                   type="button"
                   onClick={handleLogout}
                   aria-label={t('logout')}
-                  className="text-sm text-[#D4A574] text-left font-medium hover:underline"
+                  className="!m-0 !p-0 !border-0 !bg-transparent !shadow-none !justify-start hover:!translate-y-0 text-sm text-[#D4A574] text-left font-medium hover:underline"
                 >
                   {t('logout')}
                 </button>

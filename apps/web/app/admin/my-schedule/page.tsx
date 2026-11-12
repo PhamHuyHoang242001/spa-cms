@@ -47,8 +47,8 @@ export default function MySchedulePage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#3d2b25]">Lịch của tôi</h1>
-        <p className="text-sm text-[#8a6a62] mt-1 capitalize">{today}</p>
+        <h1 className="text-2xl font-bold text-[#1C1917]">Lịch của tôi</h1>
+        <p className="text-sm text-[#78716C] mt-1 capitalize">{today}</p>
       </div>
 
       {(error || actionError) && (
@@ -58,28 +58,28 @@ export default function MySchedulePage() {
       )}
 
       {loading && (
-        <p className="text-[#8a6a62] text-sm">Đang tải lịch...</p>
+        <p className="text-[#78716C] text-sm">Đang tải lịch...</p>
       )}
 
       {!loading && bookings.length === 0 && (
-        <div className="bg-white rounded-2xl border border-[#ede4de] px-6 py-12 text-center text-[#a89080] text-sm">
+        <div className="bg-white rounded-2xl border border-[#E5DDD5] px-6 py-12 text-center text-[#A8A29E] text-sm">
           Không có lịch hẹn nào hôm nay.
         </div>
       )}
 
       <ul className="space-y-4">
         {bookings.map((b) => (
-          <li key={b.id} className="bg-white rounded-2xl border border-[#ede4de] p-5">
+          <li key={b.id} className="bg-white rounded-2xl border border-[#E5DDD5] p-5">
             <div className="flex items-start justify-between gap-4">
               {/* Info */}
               <div className="space-y-1">
-                <p className="font-semibold text-[#3d2b25] text-sm">
+                <p className="font-semibold text-[#1C1917] text-sm">
                   {b.slot.startTime} – {b.slot.endTime}
-                  <span className="ml-2 text-[#8a6a62] font-normal">{b.slot.date}</span>
+                  <span className="ml-2 text-[#78716C] font-normal">{b.slot.date}</span>
                 </p>
-                <p className="text-sm text-[#3d2b25]">{b.service.name.vi}</p>
+                <p className="text-sm text-[#1C1917]">{b.service.name.vi}</p>
                 {b.note && (
-                  <p className="text-xs text-[#8a6a62] italic">Ghi chú: {b.note}</p>
+                  <p className="text-xs text-[#78716C] italic">Ghi chú: {b.note}</p>
                 )}
                 <StatusBadge status={b.status} />
               </div>

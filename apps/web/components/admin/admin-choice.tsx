@@ -13,7 +13,7 @@ interface Props {
 export function AdminChoice({ label, value, options, onChange }: Props) {
   return (
     <div className="space-y-1.5">
-      <p className="text-xs font-medium uppercase tracking-wider text-[#6b4c41]">{label}</p>
+      <p className="text-xs font-medium uppercase tracking-wider text-[#57534E]">{label}</p>
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => {
           const on = value === opt.value;
@@ -22,7 +22,7 @@ export function AdminChoice({ label, value, options, onChange }: Props) {
               key={opt.value}
               type="button"
               onClick={() => onChange(opt.value)}
-              className={`px-3 py-1.5 text-sm font-medium ${on ? 'bg-[#1C1917] text-white' : 'border border-[#ddd0ca] text-[#3d2b25]'}`}
+              className={`px-3 py-1.5 text-sm font-medium ${on ? 'bg-[#1C1917] text-white' : 'border border-[#E5DDD5] text-[#1C1917]'}`}
             >
               {opt.label}
             </button>

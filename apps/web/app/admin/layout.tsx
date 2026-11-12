@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F5F0E8]">
-        <p className="text-[#8a6a62]">Đang xác thực...</p>
+        <p className="text-[#78716C]">Đang xác thực...</p>
       </div>
     );
   }
@@ -48,9 +48,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user || user.role === 'CUSTOMER') return null;
 
   return (
-    <div className="flex min-h-screen bg-[#faf7f4]">
+    <div className="min-h-screen bg-[#faf7f4] md:flex">
       <AdminSidebar />
-      <main className="flex-1 overflow-auto p-6 md:p-8">{children}</main>
+      {/* min-w-0 lets wide tables scroll inside their own wrapper instead of stretching the page */}
+      <main className="flex-1 min-w-0 px-4 py-5 sm:px-6 md:p-8">{children}</main>
     </div>
   );
 }

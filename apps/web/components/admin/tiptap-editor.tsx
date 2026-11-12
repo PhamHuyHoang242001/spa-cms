@@ -40,7 +40,7 @@ export function TiptapEditor({
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       TiptapLink.configure({
         openOnClick: false,
-        HTMLAttributes: { class: 'text-[#B76E79] underline' },
+        HTMLAttributes: { class: 'text-[#D4A574] underline' },
       }),
       Image.configure({ inline: false, allowBase64: false }),
       Placeholder.configure({ placeholder }),
@@ -50,7 +50,7 @@ export function TiptapEditor({
     editorProps: {
       attributes: {
         class:
-          'prose prose-sm max-w-none min-h-[220px] px-4 py-3 focus:outline-none text-[#3d2b25]',
+          'prose prose-sm max-w-none min-h-[220px] px-4 py-3 focus:outline-none text-[#1C1917]',
       },
     },
   });
@@ -80,7 +80,7 @@ export function TiptapEditor({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#ddd0ca] bg-[#fdfaf8]">
+    <div className="overflow-hidden rounded-lg border border-[#E5DDD5] bg-[#FAF7F2]">
       <input
         ref={imageInputRef}
         type="file"
@@ -88,7 +88,7 @@ export function TiptapEditor({
         className="hidden"
         onChange={handleImageFileChange}
       />
-      <div className="flex flex-wrap gap-0.5 border-b border-[#ede4de] bg-[#f5ede8] px-2 py-1.5">
+      <div className="flex flex-wrap gap-0.5 border-b border-[#E5DDD5] bg-[#f5ede8] px-2 py-1.5">
         <ToolbarButton active={editor.isActive('bold')} title="In đậm" onClick={() => editor.chain().focus().toggleBold().run()}>
           <Bold size={15} />
         </ToolbarButton>
@@ -159,7 +159,7 @@ function ToolbarButton({
       onClick={onClick}
       title={title}
       className={`rounded p-1.5 transition-colors ${
-        active ? 'bg-[#B76E79]/20 text-[#B76E79]' : 'text-[#6b4c41] hover:bg-[#ede4de]'
+        active ? 'bg-[#D4A574]/20 text-[#D4A574]' : 'text-[#57534E] hover:bg-[#E5DDD5]'
       }`}
     >
       {children}
@@ -168,5 +168,5 @@ function ToolbarButton({
 }
 
 function Separator() {
-  return <div className="mx-1 h-5 w-px self-center bg-[#ddd0ca]" />;
+  return <div className="mx-1 h-5 w-px self-center bg-[#E5DDD5]" />;
 }

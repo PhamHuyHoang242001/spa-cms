@@ -100,8 +100,8 @@ export default function SlotsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#3d2b25]">Quản lý lịch hẹn</h1>
-        <p className="text-sm text-[#8a6a62] mt-1">Tạo slot và xem lịch theo bác sĩ</p>
+        <h1 className="text-2xl font-bold text-[#1C1917]">Khung giờ</h1>
+        <p className="text-sm text-[#78716C] mt-1">Tạo slot và xem lịch theo bác sĩ</p>
       </div>
 
       {error && (
@@ -112,15 +112,15 @@ export default function SlotsPage() {
       )}
 
       {/* Generate action */}
-      <div className="bg-white rounded-2xl border border-[#ede4de] p-5 flex items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-[#E5DDD5] p-5 flex items-center justify-between gap-4">
         <div>
-          <p className="font-semibold text-[#3d2b25] text-sm">Tạo slot 30 ngày cho tất cả bác sĩ</p>
-          <p className="text-xs text-[#8a6a62] mt-0.5">Mỗi bác sĩ sẽ được tạo slot tự động cho 30 ngày tiếp theo.</p>
+          <p className="font-semibold text-[#1C1917] text-sm">Tạo slot 30 ngày cho tất cả bác sĩ</p>
+          <p className="text-xs text-[#78716C] mt-0.5">Mỗi bác sĩ sẽ được tạo slot tự động cho 30 ngày tiếp theo.</p>
         </div>
         <button
           onClick={generateAll}
           disabled={generating || doctors.length === 0}
-          className="flex-shrink-0 px-5 py-2.5 rounded-full bg-[#B76E79] text-white text-sm font-medium hover:bg-[#a35d68] disabled:opacity-60 transition-colors"
+          className="flex-shrink-0 px-5 py-2.5 rounded-full bg-[#D4A574] text-white text-sm font-medium hover:bg-[#c4956a] disabled:opacity-60 transition-colors"
         >
           {generating ? 'Đang tạo...' : 'Tạo slot'}
         </button>
@@ -129,11 +129,11 @@ export default function SlotsPage() {
       {/* Filter controls */}
       <div className="flex flex-wrap gap-4 items-end">
         <div>
-          <label className="block text-xs font-medium text-[#6b4c41] mb-1 uppercase tracking-wider">Bác sĩ</label>
+          <label className="block text-xs font-medium text-[#57534E] mb-1 uppercase tracking-wider">Bác sĩ</label>
           <select
             value={selectedDoctor}
             onChange={(e) => setSelectedDoctor(e.target.value)}
-            className="rounded-lg border border-[#ddd0ca] px-3 py-2 text-sm text-[#3d2b25] bg-[#fdfaf8] focus:outline-none focus:ring-2 focus:ring-[#B76E79]/40 focus:border-[#B76E79]"
+            className="rounded-lg border border-[#E5DDD5] px-3 py-2 text-sm text-[#1C1917] bg-[#FAF7F2] focus:outline-none focus:ring-2 focus:ring-[#D4A574]/40 focus:border-[#D4A574]"
           >
             {doctors.map((d) => (
               <option key={d.id} value={d.id}>{d.name}</option>
@@ -141,21 +141,21 @@ export default function SlotsPage() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#6b4c41] mb-1 uppercase tracking-wider">Ngày</label>
+          <label className="block text-xs font-medium text-[#57534E] mb-1 uppercase tracking-wider">Ngày</label>
           <input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="rounded-lg border border-[#ddd0ca] px-3 py-2 text-sm text-[#3d2b25] bg-[#fdfaf8] focus:outline-none focus:ring-2 focus:ring-[#B76E79]/40 focus:border-[#B76E79]"
+            className="rounded-lg border border-[#E5DDD5] px-3 py-2 text-sm text-[#1C1917] bg-[#FAF7F2] focus:outline-none focus:ring-2 focus:ring-[#D4A574]/40 focus:border-[#D4A574]"
           />
         </div>
       </div>
 
       {/* Slots grid */}
       {loadingSlots ? (
-        <p className="text-sm text-[#8a6a62]">Đang tải slot...</p>
+        <p className="text-sm text-[#78716C]">Đang tải slot...</p>
       ) : slots.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-[#ede4de] px-6 py-10 text-center text-[#a89080] text-sm">
+        <div className="bg-white rounded-2xl border border-[#E5DDD5] px-6 py-10 text-center text-[#A8A29E] text-sm">
           Không có slot nào cho ngày này.
         </div>
       ) : (
@@ -163,9 +163,9 @@ export default function SlotsPage() {
           {slots.map((slot) => (
             <div
               key={slot.id}
-              className="bg-white rounded-xl border border-[#ede4de] p-4 flex flex-col gap-2"
+              className="bg-white rounded-xl border border-[#E5DDD5] p-4 flex flex-col gap-2"
             >
-              <p className="text-sm font-medium text-[#3d2b25]">
+              <p className="text-sm font-medium text-[#1C1917]">
                 {slot.startTime} – {slot.endTime}
               </p>
               <span className={`self-start px-2 py-0.5 rounded-full text-xs font-medium ${statusColor[slot.status] ?? 'bg-gray-100 text-gray-500'}`}>
@@ -174,7 +174,7 @@ export default function SlotsPage() {
               {slot.status !== 'BOOKED' && (
                 <button
                   onClick={() => toggleBlock(slot)}
-                  className={`px-3 py-1.5 text-xs font-medium ${slot.status === 'BLOCKED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-[#3d2b25]'}`}
+                  className={`px-3 py-1.5 text-xs font-medium ${slot.status === 'BLOCKED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-[#1C1917]'}`}
                 >
                   {slot.status === 'BLOCKED' ? 'Mở lịch' : 'Chặn lịch'}
                 </button>

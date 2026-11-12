@@ -136,10 +136,10 @@ export default function AdminUsersPage() {
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#3d2b25]">Người dùng</h1>
-          <p className="mt-1 text-sm text-[#8a6a62]">Quản lý tài khoản và phân quyền</p>
+          <h1 className="text-2xl font-bold text-[#1C1917]">Người dùng</h1>
+          <p className="mt-1 text-sm text-[#78716C]">Quản lý tài khoản và phân quyền</p>
         </div>
-        <Users className="text-[#B76E79]" size={24} />
+        <Users className="text-[#D4A574]" size={24} />
       </div>
 
       <AdminListBar
@@ -160,7 +160,7 @@ export default function AdminUsersPage() {
         sortPinned={sortPinned}
         onSort={applyColumnIcon}
         actions={(row) => (
-          <button type="button" onClick={() => openEdit(row)} className="px-3 py-1 text-xs border border-[#ddd0ca]"><Pencil size={14} /> Sửa</button>
+          <button type="button" onClick={() => openEdit(row)} className="px-3 py-1 text-xs border border-[#E5DDD5]"><Pencil size={14} /> Sửa</button>
         )}
       />
 
@@ -170,15 +170,15 @@ export default function AdminUsersPage() {
         <form onSubmit={handleSave} className="space-y-4">
           {saveError && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{saveError}</div>}
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">Họ tên</label>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#57534E]">Họ tên</label>
             <input value={name} onChange={(e) => setName(e.target.value)} required className={fieldClass} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">Email</label>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#57534E]">Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={fieldClass} />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">Điện thoại</label>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#57534E]">Điện thoại</label>
             <input value={phone} onChange={(e) => setPhone(e.target.value)} className={fieldClass} />
           </div>
           <AdminChoice
@@ -202,7 +202,7 @@ export default function AdminUsersPage() {
               ]}
             />
             {editUser?.id === currentUser?.id ? (
-              <p className="mt-1 text-xs text-[#8a6a62]">Không thể thay đổi vai trò của chính mình.</p>
+              <p className="mt-1 text-xs text-[#78716C]">Không thể thay đổi vai trò của chính mình.</p>
             ) : role !== editUser?.role ? (
               <p className="mt-1 text-xs text-amber-700">
                 Thay đổi vai trò sẽ ảnh hưởng đến quyền truy cập của người dùng này.
@@ -210,12 +210,12 @@ export default function AdminUsersPage() {
             ) : null}
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">Mật khẩu mới</label>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#57534E]">Mật khẩu mới</label>
             <input type="password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} className={fieldClass} placeholder="Để trống nếu không đổi" />
           </div>
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => setEditUser(null)} className="rounded-full border border-[#ddd0ca] px-4 py-2 text-sm text-[#6b4c41] hover:bg-[#f5ede8]">Hủy</button>
-            <button type="submit" disabled={saving} className="rounded-full bg-[#B76E79] px-4 py-2 text-sm font-medium text-white hover:bg-[#a35d68] disabled:opacity-60">
+            <button type="button" onClick={() => setEditUser(null)} className="rounded-full border border-[#E5DDD5] px-4 py-2 text-sm text-[#57534E] hover:bg-[#f5ede8]">Hủy</button>
+            <button type="submit" disabled={saving} className="rounded-full bg-[#D4A574] px-4 py-2 text-sm font-medium text-white hover:bg-[#c4956a] disabled:opacity-60">
               {saving ? 'Đang lưu...' : 'Lưu'}
             </button>
           </div>
@@ -226,4 +226,4 @@ export default function AdminUsersPage() {
 }
 
 const fieldClass =
-  'w-full rounded-lg border border-[#ddd0ca] bg-[#fdfaf8] px-3 py-2 text-sm text-[#3d2b25] focus:border-[#B76E79] focus:outline-none focus:ring-2 focus:ring-[#B76E79]/40 disabled:cursor-not-allowed disabled:opacity-60';
+  'w-full rounded-lg border border-[#E5DDD5] bg-[#FAF7F2] px-3 py-2 text-sm text-[#1C1917] focus:border-[#D4A574] focus:outline-none focus:ring-2 focus:ring-[#D4A574]/40 disabled:cursor-not-allowed disabled:opacity-60';

@@ -49,7 +49,7 @@ export function AdminGalleryManager({
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+      <label className="block text-xs font-medium uppercase tracking-wider text-[#57534E]">
         {label} ({value.length})
       </label>
       <input
@@ -79,10 +79,10 @@ export function AdminGalleryManager({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-[#c9b8b0] bg-[#fdfaf8] text-[#8a6a62] transition-colors hover:bg-[#f5ede8] disabled:cursor-wait"
+          className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-[#c9b8b0] bg-[#FAF7F2] text-[#78716C] transition-colors hover:bg-[#f5ede8] disabled:cursor-wait"
           title="Thêm ảnh"
         >
-          {uploading ? <Loader2 className="animate-spin text-[#B76E79]" size={22} /> : <ImagePlus size={22} />}
+          {uploading ? <Loader2 className="animate-spin text-[#D4A574]" size={22} /> : <ImagePlus size={22} />}
         </button>
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}

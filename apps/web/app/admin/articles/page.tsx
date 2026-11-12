@@ -160,10 +160,10 @@ export default function ArticlesPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#3d2b25]">Bài viết</h1>
+        <h1 className="text-2xl font-bold text-[#1C1917]">Bài viết</h1>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#B76E79] text-white text-sm font-medium hover:bg-[#a35d68] transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#D4A574] text-white text-sm font-medium hover:bg-[#c4956a] transition-colors"
         >
           <Plus size={16} /> Thêm mới
         </button>
@@ -193,7 +193,7 @@ export default function ArticlesPage() {
             <button type="button" onClick={() => togglePublish(row)} className={`px-3 py-1 text-xs ${row.publishedAt ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
               {row.publishedAt ? 'Đã đăng — gỡ' : 'Bản nháp — đăng'}
             </button>
-            <button type="button" onClick={() => openEdit(row)} className="px-3 py-1 text-xs border border-[#ddd0ca]"><Pencil size={14} /> Sửa</button>
+            <button type="button" onClick={() => openEdit(row)} className="px-3 py-1 text-xs border border-[#E5DDD5]"><Pencil size={14} /> Sửa</button>
             <button type="button" onClick={() => setDeleteId(row.id)} className="px-3 py-1 text-xs bg-red-50 text-red-600"><Trash2 size={14} /> Xóa</button>
           </>
         )}
@@ -230,7 +230,7 @@ export default function ArticlesPage() {
             <AField label="Tóm tắt (KO)" value={form.excerptKo} onChange={(v) => field('excerptKo', v)} multiline />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#6b4c41] mb-1 uppercase tracking-wider">Nội dung</label>
+            <label className="block text-xs font-medium text-[#57534E] mb-1 uppercase tracking-wider">Nội dung</label>
             <div className="mb-2 flex gap-1">
               <ContentTabButton active={contentTab === 'vi'} onClick={() => setContentTab('vi')}>
                 Tiếng Việt
@@ -249,8 +249,8 @@ export default function ArticlesPage() {
           <AdminBoolChoice label="Nổi bật trên blog" value={form.featured} onChange={(v) => field('featured', v)} />
           <AField label="Tags (cách nhau bởi dấu phẩy)" value={form.tags} onChange={(v) => field('tags', v)} />
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-full border border-[#ddd0ca] text-sm text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">Hủy</button>
-            <button type="submit" disabled={saving} className="px-4 py-2 rounded-full bg-[#B76E79] text-white text-sm font-medium hover:bg-[#a35d68] disabled:opacity-60 transition-colors">
+            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-full border border-[#E5DDD5] text-sm text-[#57534E] hover:bg-[#f5ede8] transition-colors">Hủy</button>
+            <button type="submit" disabled={saving} className="px-4 py-2 rounded-full bg-[#D4A574] text-white text-sm font-medium hover:bg-[#c4956a] disabled:opacity-60 transition-colors">
               {saving ? 'Đang lưu...' : 'Lưu'}
             </button>
           </div>
@@ -259,9 +259,9 @@ export default function ArticlesPage() {
 
       {/* Delete confirm */}
       <AdminFormModal title="Xác nhận xóa" open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <p className="text-sm text-[#3d2b25] mb-5">Bạn có chắc muốn xóa bài viết này không?</p>
+        <p className="text-sm text-[#1C1917] mb-5">Bạn có chắc muốn xóa bài viết này không?</p>
         <div className="flex justify-end gap-3">
-          <button onClick={() => setDeleteId(null)} className="px-4 py-2 rounded-full border border-[#ddd0ca] text-sm text-[#6b4c41] hover:bg-[#f5ede8] transition-colors">Hủy</button>
+          <button onClick={() => setDeleteId(null)} className="px-4 py-2 rounded-full border border-[#E5DDD5] text-sm text-[#57534E] hover:bg-[#f5ede8] transition-colors">Hủy</button>
           <button onClick={handleDelete} className="px-4 py-2 rounded-full bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors">Xóa</button>
         </div>
       </AdminFormModal>
@@ -327,8 +327,8 @@ function ContentTabButton({
       onClick={onClick}
       className={`rounded-t-lg border px-3 py-1.5 text-xs font-medium ${
         active
-          ? 'border-[#ddd0ca] border-b-white bg-white text-[#3d2b25]'
-          : 'border-transparent text-[#8a6a62] hover:text-[#3d2b25]'
+          ? 'border-[#E5DDD5] border-b-white bg-white text-[#1C1917]'
+          : 'border-transparent text-[#78716C] hover:text-[#1C1917]'
       }`}
     >
       {children}
@@ -347,10 +347,10 @@ interface AFieldProps {
 }
 
 function AField({ label, value, onChange, required, type = 'text', multiline, tall }: AFieldProps) {
-  const base = 'w-full rounded-lg border border-[#ddd0ca] px-3 py-2 text-sm text-[#3d2b25] bg-[#fdfaf8] focus:outline-none focus:ring-2 focus:ring-[#B76E79]/40 focus:border-[#B76E79]';
+  const base = 'w-full rounded-lg border border-[#E5DDD5] px-3 py-2 text-sm text-[#1C1917] bg-[#FAF7F2] focus:outline-none focus:ring-2 focus:ring-[#D4A574]/40 focus:border-[#D4A574]';
   return (
     <div>
-      <label className="block text-xs font-medium text-[#6b4c41] mb-1 uppercase tracking-wider">{label}</label>
+      <label className="block text-xs font-medium text-[#57534E] mb-1 uppercase tracking-wider">{label}</label>
       {multiline ? (
         <textarea className={`${base} resize-none ${tall ? 'h-36' : 'h-20'}`} value={value} onChange={(e) => onChange(e.target.value)} />
       ) : (

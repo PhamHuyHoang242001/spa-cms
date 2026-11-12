@@ -134,14 +134,14 @@ export default function AdminBookingsPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#3d2b25]">Đặt lịch</h1>
-          <p className="mt-1 text-sm text-[#8a6a62]">Quản lý lịch hẹn của khách hàng</p>
+          <h1 className="text-2xl font-bold text-[#1C1917]">Lịch hẹn</h1>
+          <p className="mt-1 text-sm text-[#78716C]">Quản lý lịch hẹn của khách hàng</p>
         </div>
-        <CalendarCheck className="text-[#B76E79]" size={24} />
+        <CalendarCheck className="text-[#D4A574]" size={24} />
       </div>
 
-      <div className="grid gap-3 rounded-xl border border-[#ede4de] bg-[#fdfaf8] p-4 md:grid-cols-4">
-        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+      <div className="grid gap-3 rounded-xl border border-[#E5DDD5] bg-[#FAF7F2] p-4 md:grid-cols-4">
+        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#57534E]">
           Lọc trạng thái
           <Select value={status} onChange={(v) => resetPageOnFilter(() => setStatus(v))}>
             <option value="">Tất cả trạng thái</option>
@@ -152,7 +152,7 @@ export default function AdminBookingsPage() {
             ))}
           </Select>
         </label>
-        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#57534E]">
           Lọc bác sĩ
           <Select value={doctorId} onChange={(v) => resetPageOnFilter(() => setDoctorId(v))}>
             <option value="">Tất cả bác sĩ</option>
@@ -163,11 +163,11 @@ export default function AdminBookingsPage() {
             ))}
           </Select>
         </label>
-        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#57534E]">
           Từ ngày
           <input type="date" value={from} onChange={(e) => resetPageOnFilter(() => setFrom(e.target.value))} className={fieldClass} />
         </label>
-        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+        <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#57534E]">
           Đến ngày
           <input type="date" value={to} onChange={(e) => resetPageOnFilter(() => setTo(e.target.value))} className={fieldClass} />
         </label>
@@ -200,7 +200,7 @@ export default function AdminBookingsPage() {
       <AdminFormModal title="Hủy lịch hẹn" open={!!cancelId} onClose={() => setCancelId(null)}>
         <form onSubmit={cancelBooking} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#6b4c41]">Lý do hủy</label>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#57534E]">Lý do hủy</label>
             <textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
@@ -209,7 +209,7 @@ export default function AdminBookingsPage() {
             />
           </div>
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => setCancelId(null)} className="rounded-full border border-[#ddd0ca] px-4 py-2 text-sm text-[#6b4c41] hover:bg-[#f5ede8]">Hủy</button>
+            <button type="button" onClick={() => setCancelId(null)} className="rounded-full border border-[#E5DDD5] px-4 py-2 text-sm text-[#57534E] hover:bg-[#f5ede8]">Hủy</button>
             <button type="submit" disabled={saving || !cancelReason.trim()} className="rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-60">
               Xác nhận hủy
             </button>
@@ -220,7 +220,7 @@ export default function AdminBookingsPage() {
   );
 }
 
-const fieldClass = 'w-full rounded-lg border border-[#ddd0ca] bg-[#fdfaf8] px-3 py-2 text-sm text-[#3d2b25] focus:border-[#B76E79] focus:outline-none focus:ring-2 focus:ring-[#B76E79]/40';
+const fieldClass = 'w-full rounded-lg border border-[#E5DDD5] bg-[#FAF7F2] px-3 py-2 text-sm text-[#1C1917] focus:border-[#D4A574] focus:outline-none focus:ring-2 focus:ring-[#D4A574]/40';
 
 function Select({
   value,

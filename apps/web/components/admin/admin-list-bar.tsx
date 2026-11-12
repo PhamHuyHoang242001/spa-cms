@@ -17,7 +17,7 @@ interface AdminListBarProps {
 
 function Labeled({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex min-w-[140px] flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#6b4c41]">
+    <label className="flex min-w-[140px] flex-col gap-1 text-xs font-medium uppercase tracking-wider text-[#57534E]">
       {label}
       {children}
     </label>
@@ -30,9 +30,9 @@ export function AdminListBar({
   searchPlaceholder = 'Tìm…',
   filters = [],
 }: AdminListBarProps) {
-  const box = 'rounded-lg border border-[#ddd0ca] px-3 py-2 text-sm bg-white font-normal normal-case tracking-normal text-[#3d2b25]';
+  const box = 'rounded-lg border border-[#E5DDD5] px-3 py-2 text-sm bg-white font-normal normal-case tracking-normal text-[#1C1917]';
   return (
-    <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[#ede4de] bg-[#fdfaf8] p-3">
+    <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[#E5DDD5] bg-[#FAF7F2] p-3">
       <Labeled label="Tìm kiếm">
         <input className={`${box} min-w-56`} value={search} onChange={(e) => onSearch(e.target.value)} placeholder={searchPlaceholder} />
       </Labeled>
