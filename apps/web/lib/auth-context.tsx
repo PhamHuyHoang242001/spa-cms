@@ -16,6 +16,7 @@ import {
   apiPost,
   clearTokens,
   getAccessToken,
+  refreshSession,
   setTokens,
 } from './api-client';
 import type { LoginInput, RegisterInput } from '@spa/shared';
@@ -75,21 +76,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Attempt silent token refresh then fetch current user
-    apiPost<{ accessToken: string; refreshToken: string }>(
-      '/auth/refresh',
-      { refreshToken: storedRefresh },
-    )
-      .then(({ accessToken, refreshToken }) => {
-        setTokens(accessToken, refreshToken);
-        return apiGet<{ user: User }>('/auth/me');
+    // Silent refresh (shared single-flight, safe under StrictMode double-mount) then fetch user.
+    // refreshSession clears tokens only when the server rejects them.
+    refreshSession()
+      .then((ok) => (ok ? apiGet<{ user: User }>('/auth/me') : null))
+      .then((res) => {
+        if (res) setUser(res.user);
       })
-      .then(({ user }) => setUser(user))
-      .catch((err: unknown) => {
-        // Only clear tokens on auth errors (401); keep session on transient server errors
-        const isAuthError = err instanceof Error && (err.message === 'Unauthorized' || err.message.includes('401'));
-        if (isAuthError || !(err instanceof Error)) clearTokens();
-      })
+      .catch(() => {})
       .finally(() => setIsLoading(false));
   }, []);
 

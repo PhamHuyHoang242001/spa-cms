@@ -42,7 +42,13 @@ function getRefreshToken(): string | null {
 }
 
 // ---------- token refresh ----------
-async function refreshAccessToken(): Promise<boolean> {
+// Refresh tokens rotate on every use, so two concurrent refreshes with the same token
+// make the second one fail (401) and log the user out. All callers therefore share one
+// in-flight refresh. Tokens are only cleared when the server rejects them (401/403);
+// network errors or 429 keep the session so the next request can retry.
+let refreshInFlight: Promise<boolean> | null = null;
+
+async function doRefresh(): Promise<boolean> {
   const refreshToken = getRefreshToken();
   if (!refreshToken) return false;
 
@@ -53,17 +59,26 @@ async function refreshAccessToken(): Promise<boolean> {
       body: JSON.stringify({ refreshToken }),
     });
     if (!res.ok) {
-      clearTokens();
+      if (res.status === 401 || res.status === 403) clearTokens();
       return false;
     }
     const data = await res.json() as { accessToken: string; refreshToken: string };
     setTokens(data.accessToken, data.refreshToken);
     return true;
   } catch {
-    clearTokens();
     return false;
   }
 }
+
+/** Single-flight session refresh; resolves true when a fresh access token is in memory. */
+export function refreshSession(): Promise<boolean> {
+  refreshInFlight ??= doRefresh().finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
+}
+
+const refreshAccessToken = refreshSession;
 
 // ---------- core request ----------
 async function request<T>(
